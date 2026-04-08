@@ -2,1481 +2,1728 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PCCOER Smart Canteen</title>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --green:#2d8c4e;--green-dark:#1e6b3a;--green-light:#e8f5ee;
-  --orange:#e07b39;--orange-dark:#c4622a;
-  --red:#e53935;--gray:#f5f5f5;--gray2:#eee;--gray3:#999;
-  --text:#1a1a1a;--text2:#555;--white:#fff;
-  --shadow:0 2px 12px rgba(0,0,0,0.1);--radius:14px;
+  --primary:#E8440A;--primary-dark:#c33a08;--primary-light:#fff3ee;
+  --secondary:#1B2340;--sec-light:#2a3560;
+  --success:#16a34a;--danger:#dc2626;--warning:#d97706;--info:#2563eb;
+  --bg:#f5f6fa;--card:#fff;--border:#e2e8f0;
+  --text:#111827;--muted:#64748b;
+  --shadow:0 2px 12px rgba(0,0,0,.07);--shadow-lg:0 8px 32px rgba(0,0,0,.13);
+  --radius:14px;--radius-sm:9px;
 }
-body{font-family:'Nunito',sans-serif;background:#f0f4f0;color:var(--text);min-height:100vh}
-.screen{display:none;min-height:100vh;flex-direction:column}
-.screen.active{display:flex}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+.hidden{display:none!important;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px;}
 
-/* TOAST */
-#toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:25px;font-size:14px;font-weight:600;z-index:9999;display:none;max-width:90%;text-align:center}
-#toast.success{background:var(--green)}
-#toast.error{background:var(--red)}
-
-/* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:20px}
-.modal-overlay.active{display:flex}
-.modal{background:#fff;border-radius:var(--radius);padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
-.modal h3{font-size:18px;font-weight:800;margin-bottom:16px;color:var(--text)}
-.modal-btns{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
+/* LOADER OVERLAY */
+#appLoader{position:fixed;inset:0;background:linear-gradient(145deg,#1B2340,#2a3560 50%,#E8440A 120%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff;}
+#appLoader .loader-icon{font-size:56px;margin-bottom:16px;animation:pulse 1.2s infinite;}
+#appLoader h2{font-size:20px;font-weight:900;margin-bottom:8px;}
+#appLoader p{font-size:13px;opacity:.7;}
+.spinner{width:36px;height:36px;border:4px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin-top:18px;}
 
 /* BUTTONS */
-.btn{padding:12px 20px;border-radius:10px;border:none;font-family:'Nunito',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.2s}
-.btn-green{background:var(--green);color:#fff}
-.btn-green:hover{background:var(--green-dark)}
-.btn-orange{background:var(--orange);color:#fff}
-.btn-orange:hover{background:var(--orange-dark)}
-.btn-red{background:var(--red);color:#fff}
-.btn-gray{background:var(--gray2);color:var(--text)}
-.btn-outline{background:transparent;border:2px solid var(--green);color:var(--green)}
-.btn-sm{padding:7px 14px;font-size:13px;border-radius:8px}
-.btn-full{width:100%}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 20px;border-radius:var(--radius-sm);font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;border:none;transition:all .18s;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 4px 14px rgba(232,68,10,.35);}
+.btn-secondary{background:var(--secondary);color:#fff;}
+.btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary);}
+.btn-outline:hover{background:var(--primary);color:#fff;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-success{background:var(--success);color:#fff;}
+.btn-ghost{background:transparent;border:2px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--primary);color:var(--primary);}
+.btn-sm{padding:7px 13px;font-size:12px;}
+.btn-lg{padding:15px 28px;font-size:16px;}
+.btn-full{width:100%;}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
 
-/* FORMS */
-.form-group{margin-bottom:14px}
-.form-group label{display:block;font-size:13px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
-.form-group input,.form-group select,.form-group textarea{width:100%;padding:12px 14px;border:2px solid var(--gray2);border-radius:10px;font-family:'Nunito',sans-serif;font-size:15px;color:var(--text);background:#fff;transition:border 0.2s}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--green)}
+/* INPUTS */
+.form-group{margin-bottom:15px;}
+.form-label{display:block;font-weight:800;font-size:12px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.6px;}
+.form-control{width:100%;padding:11px 15px;border:2px solid var(--border);border-radius:var(--radius-sm);font-family:'Nunito',sans-serif;font-size:14px;color:var(--text);background:#fff;transition:border-color .18s;}
+.form-control:focus{outline:none;border-color:var(--primary);}
+.input-wrap{position:relative;}
+.input-wrap .form-control{padding-right:44px;}
+.input-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:var(--muted);padding:4px;}
+.input-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:17px;pointer-events:none;}
+.input-wrap.has-icon .form-control{padding-left:40px;}
 
-/* ===== LOGIN SCREEN ===== */
-#screen-login{background:linear-gradient(160deg,#1e6b3a 0%,#2d8c4e 50%,#3da866 100%);align-items:center;justify-content:center;padding:20px}
-.login-card{background:#fff;border-radius:24px;padding:32px 24px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
-.login-logo{text-align:center;margin-bottom:24px}
-.login-logo .logo-icon{width:70px;height:70px;background:var(--green-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:32px}
-.login-logo h1{font-size:22px;font-weight:900;color:var(--green)}
-.login-logo p{font-size:12px;color:var(--text2);margin-top:2px}
-.login-btns{display:flex;flex-direction:column;gap:12px}
-.login-btn{padding:16px;border-radius:12px;border:none;font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all 0.2s}
-.login-btn .icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
-.login-btn-hostel{background:var(--green-light);color:var(--green-dark)}
-.login-btn-hostel .icon{background:var(--green);color:#fff}
-.login-btn-normal{background:#fff3e0;color:#e65100}
-.login-btn-normal .icon{background:var(--orange);color:#fff}
-.login-btn-admin{background:#f3f3f3;color:#333}
-.login-btn-admin .icon{background:#555;color:#fff}
-.login-divider{text-align:center;color:var(--gray3);font-size:13px;margin:4px 0}
-.signup-link{text-align:center;margin-top:12px;font-size:14px;color:var(--text2)}
-.signup-link a{color:var(--green);font-weight:700;cursor:pointer;text-decoration:none}
+/* IMAGE UPLOAD */
+.img-upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;transition:all .18s;background:#fafbfc;position:relative;}
+.img-upload-zone:hover{border-color:var(--primary);background:var(--primary-light);}
+.img-upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.img-upload-zone .uz-icon{font-size:32px;margin-bottom:8px;}
+.img-upload-zone p{font-size:13px;color:var(--muted);font-weight:700;}
+.img-upload-zone small{font-size:11px;color:var(--muted);}
+.img-preview{width:100%;height:160px;object-fit:cover;border-radius:var(--radius-sm);margin-bottom:10px;border:1px solid var(--border);}
+.img-progress{height:6px;background:var(--border);border-radius:10px;overflow:hidden;margin-top:8px;}
+.img-progress-bar{height:100%;background:var(--primary);border-radius:10px;transition:width .3s;width:0%;}
 
-/* ===== AUTH FORMS ===== */
-#screen-auth{background:#f0f4f0;align-items:center;justify-content:center;padding:20px}
-.auth-card{background:#fff;border-radius:24px;padding:28px 24px;width:100%;max-width:420px;box-shadow:var(--shadow)}
-.auth-back{color:var(--orange);font-weight:700;font-size:14px;cursor:pointer;margin-bottom:20px;display:inline-flex;align-items:center;gap:6px;border:none;background:none;font-family:'Nunito',sans-serif}
-.auth-card h2{font-size:24px;font-weight:900;margin-bottom:6px}
-.auth-card .subtitle{font-size:14px;color:var(--text2);margin-bottom:24px}
-.pass-wrap{position:relative}
-.pass-wrap input{padding-right:44px}
-.pass-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px}
+/* CARDS */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:space-between;}
+.card-body{padding:18px 20px;}
 
-/* ===== NORMAL STUDENT ===== */
-#screen-normal{background:#f0f4f0}
-.top-bar{background:var(--green);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
-.top-bar h2{font-size:18px;font-weight:800}
-.top-bar .user-info{font-size:13px;opacity:0.85}
-.top-bar .logout-btn{background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 12px;border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
-.special-banner{background:linear-gradient(135deg,var(--orange),#f5a623);color:#fff;margin:16px;border-radius:14px;padding:14px 18px;font-size:14px;font-weight:700}
-.special-banner .label{font-size:11px;opacity:0.85;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
-.menu-tabs{display:flex;background:#fff;margin:0 16px;border-radius:12px;padding:4px;gap:4px;box-shadow:var(--shadow)}
-.menu-tab{flex:1;padding:10px;text-align:center;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--text2);font-family:'Nunito',sans-serif;transition:all 0.2s}
-.menu-tab.active{background:var(--green);color:#fff}
-.menu-content{padding:16px;flex:1;overflow-y:auto;padding-bottom:100px}
-.menu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-@media(min-width:600px){.menu-grid{grid-template-columns:repeat(3,1fr)}}
-@media(min-width:900px){.menu-grid{grid-template-columns:repeat(4,1fr)}}
-.menu-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
-.menu-card img{width:100%;height:120px;object-fit:cover}
-.menu-card-body{padding:10px}
-.menu-card-name{font-size:14px;font-weight:800;margin-bottom:4px}
-.menu-card-price{font-size:15px;font-weight:900;color:var(--green)}
-.qty-control{display:flex;align-items:center;gap:8px;margin-top:8px}
-.qty-btn{width:30px;height:30px;border-radius:8px;border:none;background:var(--green-light);color:var(--green);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
-.qty-btn:active{background:var(--green);color:#fff}
-.qty-num{font-size:15px;font-weight:800;min-width:20px;text-align:center}
-.unavailable-badge{background:#ffebee;color:var(--red);font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;display:inline-block;margin-top:4px}
-.cart-bar{position:fixed;bottom:0;left:0;right:0;background:var(--green);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;z-index:100;display:none}
-.cart-bar.visible{display:flex}
-.cart-bar .cart-info{font-size:14px;font-weight:700}
-.cart-bar .cart-total{font-size:18px;font-weight:900}
-.cart-bar .view-cart-btn{background:#fff;color:var(--green);border:none;padding:10px 18px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
+/* BADGES */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:800;}
+.badge-success{background:#dcfce7;color:#166534;}
+.badge-danger{background:#fee2e2;color:#991b1b;}
+.badge-warning{background:#fef3c7;color:#854d0e;}
+.badge-info{background:#dbeafe;color:#1e40af;}
+.badge-primary{background:var(--primary-light);color:var(--primary);}
+.badge-grey{background:#f1f5f9;color:#475569;}
 
-/* CART SCREEN */
-#screen-cart{background:#f0f4f0}
-.back-bar{background:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
-.back-bar button{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text)}
-.back-bar h2{font-size:18px;font-weight:800}
-.cart-items{padding:16px;flex:1;overflow-y:auto}
-.cart-item{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
-.cart-item-name{font-size:15px;font-weight:700}
-.cart-item-price{font-size:13px;color:var(--text2)}
-.cart-summary{background:#fff;margin:0 16px 16px;border-radius:14px;padding:16px}
-.cart-summary-row{display:flex;justify-content:space-between;padding:6px 0;font-size:15px}
-.cart-summary-row.total{font-weight:900;font-size:18px;border-top:2px solid var(--gray2);margin-top:6px;padding-top:12px}
-.cart-actions{padding:0 16px 24px;display:flex;flex-direction:column;gap:10px}
+/* TOGGLE */
+.toggle-wrap{display:flex;align-items:center;gap:10px;}
+.toggle{width:42px;height:23px;background:#cbd5e1;border-radius:20px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
+.toggle.on{background:var(--success);}
+.toggle::after{content:'';position:absolute;left:3px;top:2.5px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.toggle.on::after{left:21px;}
 
-/* PAYMENT SCREEN */
-#screen-payment{background:#f0f4f0}
-.payment-options{padding:16px}
-.payment-option{background:#fff;border-radius:12px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;border:2px solid transparent;transition:all 0.2s}
-.payment-option.selected{border-color:var(--green);background:var(--green-light)}
-.payment-option .pay-icon{font-size:28px}
-.payment-option .pay-label{font-size:16px;font-weight:700}
-.payment-option .pay-desc{font-size:13px;color:var(--text2)}
-.payment-option input[type=radio]{display:none}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeIn .18s;}
+.modal{background:#fff;border-radius:var(--radius);width:100%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:slideUp .22s;}
+.modal-lg{max-width:680px;}
+.modal-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;}
+.modal-title{font-weight:900;font-size:17px;}
+.modal-close{width:30px;height:30px;border-radius:50%;border:none;background:var(--border);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.modal-body{padding:22px;}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
 
-/* BILL SCREEN */
-#screen-bill{background:#f0f4f0;align-items:center;justify-content:flex-start;padding:20px}
-.bill-card{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:380px;font-family:monospace;box-shadow:var(--shadow);margin:0 auto}
-.bill-header{text-align:center;border-bottom:2px dashed #ddd;padding-bottom:14px;margin-bottom:14px}
-.bill-header h3{font-size:18px;font-weight:700;font-family:'Nunito',sans-serif}
-.bill-header p{font-size:12px;color:var(--text2)}
-.bill-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
-.bill-row.total{font-weight:700;font-size:15px;border-top:1px dashed #ddd;margin-top:8px;padding-top:8px}
-.bill-footer{text-align:center;border-top:2px dashed #ddd;margin-top:14px;padding-top:14px;font-size:12px;color:var(--text2);font-family:'Nunito',sans-serif}
-.bill-actions{display:flex;flex-direction:column;gap:10px;margin-top:16px;width:100%;max-width:380px}
+/* TABS */
+.tabs{display:flex;gap:3px;background:#eef0f5;border-radius:12px;padding:4px;}
+.tab-btn{flex:1;padding:9px 6px;border-radius:10px;border:none;background:transparent;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;transition:all .18s;color:var(--muted);}
+.tab-btn.active{background:#fff;color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,.07);}
 
-/* ===== HOSTEL SCREEN ===== */
-#screen-hostel{background:#f0f4f0}
-.hostel-home{padding:20px;flex:1}
-.hostel-welcome{background:var(--green);color:#fff;border-radius:16px;padding:20px;margin-bottom:20px}
-.hostel-welcome h2{font-size:20px;font-weight:900}
-.hostel-welcome p{font-size:14px;opacity:0.85;margin-top:4px}
-.hostel-options{display:flex;flex-direction:column;gap:14px}
-.hostel-option-card{background:#fff;border-radius:16px;padding:20px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:16px;border:2px solid transparent;transition:all 0.2s}
-.hostel-option-card:hover{border-color:var(--green)}
-.hostel-option-card .opt-icon{width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
-.hostel-option-card .opt-icon.green{background:var(--green-light)}
-.hostel-option-card .opt-icon.orange{background:#fff3e0}
-.hostel-option-card h3{font-size:16px;font-weight:800}
-.hostel-option-card p{font-size:13px;color:var(--text2);margin-top:3px}
-.locked-badge{background:#ffebee;color:var(--red);font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px;margin-top:6px;display:inline-block}
+/* ANIMATIONS */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes scanLine{0%{top:5%}100%{top:90%}}
 
-/* QR SCANNER */
-#screen-qr{background:#000;align-items:center;justify-content:center}
-.qr-header{position:fixed;top:0;left:0;right:0;background:rgba(0,0,0,0.7);padding:16px 20px;display:flex;align-items:center;gap:14px;z-index:10}
-.qr-header button{background:none;border:none;color:#fff;font-size:22px;cursor:pointer}
-.qr-header h3{color:#fff;font-size:18px;font-weight:800}
-#qr-video{width:100%;max-width:500px;border-radius:16px}
-#qr-canvas{display:none}
-.qr-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.qr-frame{width:250px;height:250px;border:3px solid var(--green);border-radius:20px;box-shadow:0 0 0 9999px rgba(0,0,0,0.5)}
-.qr-hint{position:fixed;bottom:40px;color:#fff;font-size:14px;font-weight:600;text-align:center;width:100%}
+/* TOAST */
+.toast-container{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{background:#fff;border-radius:10px;padding:12px 16px;box-shadow:var(--shadow-lg);font-weight:700;font-size:13px;display:flex;align-items:center;gap:9px;min-width:240px;animation:slideUp .2s;border-left:4px solid #ccc;}
+.toast.success{border-color:var(--success);}
+.toast.error{border-color:var(--danger);}
+.toast.info{border-color:var(--info);}
 
-/* HOSTEL CONFIRMATION */
-#screen-hostel-confirm{background:#f0f4f0;align-items:center;justify-content:center;padding:20px}
-.confirm-card{background:#fff;border-radius:20px;padding:28px 24px;width:100%;max-width:380px;text-align:center;box-shadow:var(--shadow)}
-.confirm-icon{width:80px;height:80px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 16px}
-.confirm-card h2{font-size:22px;font-weight:900;color:var(--green);margin-bottom:8px}
-.confirm-detail{background:var(--gray);border-radius:12px;padding:16px;margin:16px 0;text-align:left}
-.confirm-detail-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px}
-.confirm-detail-row .label{color:var(--text2);font-weight:600}
-.confirm-detail-row .value{font-weight:800}
+/* ===== LOGIN ===== */
+#loginPage{min-height:100vh;background:linear-gradient(145deg,#1B2340 0%,#2a3560 50%,#E8440A 130%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+.login-hero{text-align:center;color:#fff;margin-bottom:28px;}
+.login-logo{width:76px;height:76px;background:rgba(255,255,255,.12);border-radius:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:36px;border:2px solid rgba(255,255,255,.2);}
+.login-hero h1{font-family:'Poppins',sans-serif;font-size:23px;font-weight:800;}
+.login-hero p{font-size:12px;opacity:.7;margin-top:4px;}
+.login-box{background:rgba(255,255,255,.97);border-radius:20px;padding:26px 24px;width:100%;max-width:390px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.login-box h2{text-align:center;font-size:16px;font-weight:900;margin-bottom:18px;color:var(--secondary);}
+.role-btn{width:100%;padding:14px 18px;border-radius:var(--radius);border:2px solid var(--border);background:#fff;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:var(--text);transition:all .18s;display:flex;align-items:center;gap:13px;margin-bottom:10px;}
+.role-btn:hover{border-color:var(--primary);background:var(--primary-light);color:var(--primary);}
+.role-icon{font-size:26px;width:30px;text-align:center;}
+.role-text{text-align:left;flex:1;}
+.role-text small{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-top:1px;}
+.admin-btn-small{display:block;width:100%;text-align:center;padding:10px;border:1.5px dashed var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:700;color:var(--muted);background:transparent;cursor:pointer;transition:all .18s;}
+.admin-btn-small:hover{border-color:var(--primary);color:var(--primary);}
+.signup-hint{text-align:center;font-size:13px;color:var(--muted);margin-top:14px;}
+.signup-hint a{color:var(--primary);font-weight:800;cursor:pointer;}
 
-/* ===== ADMIN SCREEN ===== */
-#screen-admin{background:#f0f4f0;flex-direction:row}
-.admin-sidebar{width:240px;background:#fff;box-shadow:2px 0 8px rgba(0,0,0,0.08);display:flex;flex-direction:column;flex-shrink:0}
-@media(max-width:768px){
-  #screen-admin{flex-direction:column}
-  .admin-sidebar{width:100%;flex-direction:row;overflow-x:auto;padding:8px;gap:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
-  .sidebar-logo{display:none}
-  .sidebar-nav{flex-direction:row;padding:0;gap:4px}
-  .nav-item{flex-direction:column;padding:8px 10px;gap:2px;border-radius:10px;min-width:70px;justify-content:center;align-items:center;font-size:11px}
-  .nav-item .nav-icon{font-size:18px}
-  .nav-item span{font-size:10px}
-  .sidebar-logout{display:none}
-  .admin-logout-mobile{display:block}
-}
-.sidebar-logo{padding:20px;border-bottom:1px solid var(--gray2)}
-.sidebar-logo h2{font-size:16px;font-weight:900;color:var(--green)}
-.sidebar-logo p{font-size:12px;color:var(--text2)}
-.sidebar-nav{display:flex;flex-direction:column;padding:12px 8px;gap:4px;flex:1}
-.nav-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;color:var(--text2);border:none;background:transparent;font-family:'Nunito',sans-serif;transition:all 0.2s;text-align:left;width:100%}
-.nav-item .nav-icon{font-size:20px}
-.nav-item:hover{background:var(--green-light);color:var(--green)}
-.nav-item.active{background:var(--green);color:#fff}
-.sidebar-logout{padding:16px;border-top:1px solid var(--gray2)}
-.admin-logout-mobile{display:none;padding:8px 16px;border-bottom:1px solid var(--gray2)}
-.admin-main{flex:1;overflow-y:auto;padding:24px}
-@media(max-width:768px){.admin-main{padding:16px}}
-.admin-section{display:none}
-.admin-section.active{display:block}
-.admin-section h2{font-size:22px;font-weight:900;margin-bottom:20px}
-.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
-@media(min-width:600px){.stats-grid{grid-template-columns:repeat(4,1fr)}}
-.stat-card{background:#fff;border-radius:14px;padding:16px;box-shadow:var(--shadow)}
-.stat-card .stat-label{font-size:12px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
-.stat-card .stat-value{font-size:28px;font-weight:900;color:var(--green);margin-top:4px}
-.stat-card .stat-sub{font-size:12px;color:var(--text2);margin-top:2px}
-.table-wrap{background:#fff;border-radius:14px;overflow:hidden;box-shadow:var(--shadow);overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:500px}
-th{background:var(--green);color:#fff;padding:12px 14px;text-align:left;font-size:13px;font-weight:700}
-td{padding:12px 14px;border-bottom:1px solid var(--gray2);font-size:14px}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#f9f9f9}
-.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
-.badge-green{background:#e8f5e9;color:#2e7d32}
-.badge-red{background:#ffebee;color:#c62828}
-.badge-orange{background:#fff3e0;color:#e65100}
-.badge-gray{background:#f5f5f5;color:#555}
-.action-btns{display:flex;gap:6px;flex-wrap:wrap}
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
-.section-header h3{font-size:18px;font-weight:800}
-.menu-admin-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
-@media(min-width:600px){.menu-admin-grid{grid-template-columns:repeat(3,1fr)}}
-.menu-admin-card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
-.menu-admin-card img{width:100%;height:100px;object-fit:cover}
-.menu-admin-card-body{padding:12px}
-.menu-admin-card-name{font-size:14px;font-weight:800}
-.menu-admin-card-price{font-size:16px;font-weight:900;color:var(--green);margin:4px 0}
-.toggle-switch{position:relative;display:inline-block;width:44px;height:24px}
-.toggle-switch input{opacity:0;width:0;height:0}
-.toggle-slider{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:24px;transition:0.3s}
-.toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.3s}
-input:checked + .toggle-slider{background:var(--green)}
-input:checked + .toggle-slider:before{transform:translateX(20px)}
-.qr-display{text-align:center;padding:10px}
+/* ===== AUTH FORM ===== */
+#authFormPage{min-height:100vh;background:linear-gradient(145deg,#1B2340,#2a3560 60%,#E8440A 130%);display:flex;align-items:center;justify-content:center;padding:20px;}
+.auth-box{background:#fff;border-radius:20px;padding:26px 24px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.auth-back{display:flex;align-items:center;gap:7px;color:var(--primary);font-weight:800;cursor:pointer;margin-bottom:16px;font-size:13px;}
+.auth-box h2{font-size:20px;font-weight:900;margin-bottom:4px;}
+.auth-sub{color:var(--muted);font-size:12px;margin-bottom:18px;}
+.forgot-link{text-align:right;font-size:12px;color:var(--primary);font-weight:700;cursor:pointer;margin-top:-8px;margin-bottom:13px;display:block;}
 
-/* COUNTER ORDER */
-.counter-menu-tabs{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
-.counter-tab{padding:8px 16px;border-radius:10px;border:2px solid var(--gray2);background:#fff;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s}
-.counter-tab.active{background:var(--green);color:#fff;border-color:var(--green)}
-.counter-items{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
-@media(min-width:600px){.counter-items{grid-template-columns:repeat(3,1fr)}}
-.counter-item{background:#fff;border-radius:12px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,0.07);display:flex;flex-direction:column}
-.counter-item-name{font-size:14px;font-weight:700;flex:1}
-.counter-item-price{font-size:15px;font-weight:900;color:var(--green);margin:4px 0}
-.counter-cart-summary{background:#fff;border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow)}
-.event-item-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
-.event-item-row input{flex:1}
-.event-item-row input:last-of-type{flex:0 0 80px}
-.event-item-row button{flex-shrink:0}
-.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-.filter-btn{padding:7px 14px;border-radius:8px;border:2px solid var(--gray2);background:#fff;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s}
-.filter-btn.active{background:var(--green);color:#fff;border-color:var(--green)}
-.no-data{text-align:center;padding:40px;color:var(--text2)}
-.no-data .icon{font-size:48px;margin-bottom:12px}
-.no-data p{font-size:15px;font-weight:600}
-.credentials-box{background:var(--green-light);border-radius:12px;padding:16px;margin:12px 0}
-.credentials-box .cred-row{display:flex;justify-content:space-between;padding:4px 0;font-size:15px}
-.credentials-box .cred-label{color:var(--text2);font-weight:600}
-.credentials-box .cred-value{font-weight:900;color:var(--green-dark)}
+/* ===== STUDENT PAGE ===== */
+#studentPage{min-height:100vh;display:flex;flex-direction:column;background:var(--bg);}
+.s-header{background:var(--secondary);color:#fff;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 3px 16px rgba(0,0,0,.18);}
+.s-brand{display:flex;align-items:center;gap:11px;}
+.s-brand-icon{width:38px;height:38px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.s-brand-text h3{font-size:14px;font-weight:900;}
+.s-brand-text p{font-size:10px;opacity:.65;}
+.s-header-right{display:flex;align-items:center;gap:9px;}
+.user-chip{background:rgba(255,255,255,.1);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,.15);}
+.offer-banner{background:linear-gradient(90deg,#E8440A,#ff6b35);color:#fff;overflow:hidden;}
+.offer-banner-inner{display:flex;align-items:stretch;}
+.offer-label{background:rgba(0,0,0,.15);padding:10px 14px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;display:flex;align-items:center;gap:5px;}
+.offer-text{flex:1;padding:10px 14px;font-size:13px;font-weight:700;display:flex;align-items:center;}
+.offer-cta{background:rgba(255,255,255,.2);padding:10px 16px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px;border-left:1px solid rgba(255,255,255,.2);transition:background .18s;}
+.offer-cta:hover{background:rgba(255,255,255,.3);}
+.menu-wrap{display:flex;flex:1;overflow:hidden;}
+.menu-left{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.menu-tabs-bar{padding:14px 18px 0;background:#fff;border-bottom:1px solid var(--border);}
+.menu-scroll{flex:1;overflow-y:auto;padding:16px 18px 100px;}
+.food-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:13px;}
+@media(min-width:900px){.food-grid{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:1200px){.food-grid{grid-template-columns:repeat(4,1fr);}}
+.food-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:transform .18s,box-shadow .18s;}
+.food-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);}
+.food-card.unavail{opacity:.55;pointer-events:none;}
+.food-card-img{width:100%;height:120px;object-fit:cover;display:block;background:#f0f2f5;}
+.food-card-body{padding:11px 12px;}
+.food-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:5px;}
+.food-name{font-weight:800;font-size:13px;line-height:1.3;flex:1;}
+.food-price{font-weight:900;font-size:15px;color:var(--primary);white-space:nowrap;}
+.food-unavail-tag{font-size:10px;color:var(--danger);font-weight:800;margin-top:3px;}
+.qty-row{margin-top:9px;}
+.add-btn{width:100%;padding:7px;border-radius:20px;border:2px solid var(--primary);background:transparent;color:var(--primary);font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;cursor:pointer;transition:all .18s;}
+.add-btn:hover{background:var(--primary);color:#fff;}
+.qty-control{display:flex;align-items:center;border:2px solid var(--border);border-radius:20px;overflow:hidden;}
+.qty-btn{width:32px;height:30px;border:none;background:var(--bg);cursor:pointer;font-size:17px;font-weight:900;color:var(--primary);transition:background .15s;display:flex;align-items:center;justify-content:center;}
+.qty-btn:hover{background:var(--primary-light);}
+.qty-num{flex:1;text-align:center;font-weight:900;font-size:14px;}
+
+/* CART PANEL */
+.cart-panel{width:310px;background:#fff;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.cart-panel-header{padding:16px 18px;border-bottom:1px solid var(--border);font-weight:900;font-size:16px;display:flex;align-items:center;gap:9px;}
+.cart-panel-body{flex:1;overflow-y:auto;padding:12px 16px;}
+.cart-panel-footer{padding:14px 16px;border-top:1px solid var(--border);}
+.cp-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.cp-item:last-child{border:none;}
+.cp-img{width:42px;height:42px;border-radius:8px;object-fit:cover;flex-shrink:0;background:#f0f2f5;}
+.cp-info{flex:1;min-width:0;}
+.cp-name{font-weight:800;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cp-price{font-size:11px;color:var(--muted);}
+.cp-total{font-weight:900;font-size:13px;color:var(--primary);flex-shrink:0;}
+.cart-total-row{display:flex;justify-content:space-between;font-weight:900;font-size:17px;padding:10px 0;}
+.cart-total-row span:last-child{color:var(--primary);}
+.mobile-cart-bar{position:fixed;bottom:0;left:0;right:0;background:var(--secondary);color:#fff;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;z-index:200;box-shadow:0 -4px 20px rgba(0,0,0,.18);}
+.mcb-info{font-size:13px;font-weight:700;}
+.mcb-total{font-size:19px;font-weight:900;color:var(--primary);}
+@media(max-width:900px){.cart-panel{display:none!important;}.mobile-cart-bar{display:flex!important;}}
+@media(min-width:901px){.mobile-cart-bar{display:none!important;}.cart-panel{display:flex!important;}}
+
+/* CART PAGE */
+#cartPage{min-height:100vh;background:var(--bg);}
+.page-hdr{background:#fff;padding:14px 18px;display:flex;align-items:center;gap:13px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;}
+.back-btn{width:38px;height:38px;border-radius:50%;border:2px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.page-hdr h2{font-size:17px;font-weight:900;}
+.cart-list{padding:14px 18px;}
+.cart-item{background:#fff;border-radius:var(--radius);padding:13px 15px;margin-bottom:11px;display:flex;align-items:center;gap:13px;box-shadow:var(--shadow);}
+.ci-img{width:56px;height:56px;border-radius:10px;object-fit:cover;flex-shrink:0;background:#f0f2f5;}
+.ci-info{flex:1;}
+.ci-name{font-weight:800;font-size:14px;}
+.ci-price-each{font-size:12px;color:var(--muted);margin-top:2px;}
+.ci-total{font-weight:900;color:var(--primary);font-size:15px;flex-shrink:0;}
+.cart-summary{background:#fff;border-radius:var(--radius);margin:0 18px 16px;padding:18px;box-shadow:var(--shadow);}
+.cs-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:14px;}
+.cs-row:last-child{border:none;font-weight:900;font-size:17px;color:var(--primary);}
+.cart-btns{padding:0 18px 90px;display:flex;gap:11px;}
+
+/* PAYMENT */
+#paymentPage{min-height:100vh;background:var(--bg);}
+.pay-method{border:2px solid var(--border);border-radius:var(--radius);padding:15px;cursor:pointer;display:flex;align-items:center;gap:13px;transition:all .18s;margin-bottom:11px;}
+.pay-method.sel{border-color:var(--primary);background:var(--primary-light);}
+.pay-icon{font-size:24px;}
+.pay-text h4{font-weight:800;font-size:14px;}
+.pay-text p{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* RECEIPT */
+.receipt-wrap{font-family:'Courier New',monospace;background:#fff;border-radius:var(--radius);padding:22px;margin:16px 18px;box-shadow:var(--shadow-lg);border:2px dashed var(--border);}
+.r-div{border:none;border-top:1.5px dashed #ccc;margin:10px 0;}
+.r-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;}
+.r-total{font-weight:900;font-size:15px;color:var(--primary);}
+.r-foot{text-align:center;font-size:11px;color:var(--muted);margin-top:14px;}
+
+/* HOSTEL */
+#hostelPage{min-height:100vh;background:var(--bg);}
+.hostel-hero{background:linear-gradient(135deg,var(--secondary),var(--sec-light));color:#fff;border-radius:var(--radius);padding:22px;margin-bottom:20px;}
+.hostel-hero h2{font-size:20px;font-weight:900;}
+.hostel-meta{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+.hostel-meta-chip{background:rgba(255,255,255,.12);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;}
+.h-opt-card{background:#fff;border-radius:var(--radius);padding:18px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:var(--shadow);border:2px solid transparent;transition:all .18s;margin-bottom:12px;}
+.h-opt-card:hover{border-color:var(--primary);transform:translateY(-2px);}
+
+/* HOSTEL CHECKIN PAGE */
+#hostelCheckinPage{min-height:100vh;background:linear-gradient(145deg,#1B2340,#2a3560 60%,#E8440A 130%);display:flex;align-items:center;justify-content:center;padding:20px;}
+.hc-box{background:#fff;border-radius:20px;padding:26px 22px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+
+/* ADMIN */
+#adminPage{min-height:100vh;display:flex;background:var(--bg);}
+.a-sidebar{width:230px;background:var(--secondary);min-height:100vh;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;flex-shrink:0;}
+.a-sb-brand{padding:18px 18px 20px;border-bottom:1px solid rgba(255,255,255,.08);}
+.a-sb-brand h2{color:#fff;font-size:15px;font-weight:900;}
+.a-sb-brand p{color:rgba(255,255,255,.45);font-size:11px;margin-top:2px;}
+.a-sb-nav{padding:14px 10px;flex:1;}
+.a-nav-item{display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:var(--radius-sm);color:rgba(255,255,255,.65);font-weight:700;font-size:13px;cursor:pointer;transition:all .18s;margin-bottom:3px;}
+.a-nav-item:hover,.a-nav-item.active{background:var(--primary);color:#fff;}
+.a-nav-icon{font-size:18px;width:22px;text-align:center;}
+.a-sb-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.08);}
+.a-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.a-topbar{background:#fff;padding:14px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.a-topbar h2{font-size:17px;font-weight:900;}
+.a-content{flex:1;padding:20px 22px;overflow-y:auto;}
+.a-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);z-index:200;}
+.a-bn-inner{display:flex;}
+.a-bn-item{flex:1;padding:9px 4px;text-align:center;cursor:pointer;border:none;background:transparent;font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;color:var(--muted);}
+.a-bn-item span{font-size:20px;display:block;margin-bottom:2px;}
+.a-bn-item.active{color:var(--primary);}
+@media(max-width:768px){.a-sidebar{display:none!important;}.a-bottom-nav{display:block!important;}.a-main{padding-bottom:58px;}.a-content{padding:14px 15px;}}
+.metrics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;}
+@media(min-width:769px){.metrics-grid{grid-template-columns:repeat(4,1fr);}}
+.metric-card{background:#fff;border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border-top:3px solid var(--primary);}
+.metric-card.g{border-color:var(--success);}
+.metric-card.b{border-color:var(--info);}
+.metric-card.o{border-color:var(--warning);}
+.metric-card p{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.5px;}
+.metric-card h3{font-size:26px;font-weight:900;margin-top:5px;}
+.tbl-wrap{overflow-x:auto;border-radius:var(--radius);box-shadow:var(--shadow);}
+.data-tbl{width:100%;border-collapse:collapse;background:#fff;}
+.data-tbl th{background:#f8fafc;padding:11px 15px;text-align:left;font-size:11px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--border);white-space:nowrap;}
+.data-tbl td{padding:11px 15px;font-size:13px;border-bottom:1px solid var(--border);}
+.data-tbl tr:last-child td{border:none;}
+.data-tbl tr:hover td{background:#fafbfc;}
+.a-menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:13px;}
+.a-food-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.a-food-img{width:100%;height:110px;object-fit:cover;background:#f0f2f5;}
+.a-food-body{padding:11px;}
+.a-food-name{font-weight:800;font-size:13px;}
+.a-food-price{color:var(--primary);font-weight:900;margin:3px 0 8px;font-size:14px;}
+.a-food-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.sec-title{font-size:16px;font-weight:900;margin:20px 0 12px;display:flex;align-items:center;gap:10px;color:var(--secondary);}
+.sec-title::after{content:'';flex:1;height:2px;background:var(--border);}
+.filter-bar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px;align-items:center;}
+.f-btn{padding:7px 15px;border-radius:20px;border:2px solid var(--border);background:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;cursor:pointer;transition:all .18s;color:var(--muted);}
+.f-btn.active{border-color:var(--primary);background:var(--primary);color:#fff;}
+.counter-layout{display:grid;gap:18px;}
+@media(min-width:900px){.counter-layout{grid-template-columns:1fr 300px;}}
+.counter-cart-box{background:#fff;border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);position:sticky;top:72px;height:fit-content;}
+.ev-row{display:flex;gap:9px;align-items:center;margin-bottom:9px;}
+.ev-row .form-control{flex:1;}
+.ev-rm{width:34px;height:34px;border-radius:50%;border:2px solid var(--danger);color:var(--danger);background:transparent;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.qr-box{display:inline-flex;align-items:center;justify-content:center;padding:10px;background:#fff;border-radius:10px;border:1px solid var(--border);}
+.policy-sec{margin-bottom:18px;}
+.policy-sec h3{font-size:14px;font-weight:900;margin-bottom:7px;color:var(--secondary);}
+.policy-sec p{font-size:13px;color:var(--muted);line-height:1.7;}
+.radio-group{display:flex;gap:14px;flex-wrap:wrap;}
+.radio-label{display:flex;align-items:center;gap:7px;cursor:pointer;font-weight:700;font-size:13px;}
+.radio-label input{accent-color:var(--primary);}
+footer{text-align:center;padding:10px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);background:#fff;}
+footer a{color:var(--primary);cursor:pointer;font-weight:800;}
+.empty-state{text-align:center;padding:36px 20px;color:var(--muted);}
+.empty-state .es-icon{font-size:46px;margin-bottom:10px;}
+.empty-state p{font-weight:700;}
+.ci-info-grid{background:#f0fdf4;border-radius:var(--radius-sm);padding:14px;margin:14px 0;text-align:left;}
+.ci-info-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #dcfce7;font-size:13px;}
+.ci-info-row:last-child{border:none;}
+.fb-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;background:#dbeafe;color:#1e40af;}
+.fb-status.live{background:#dcfce7;color:#166534;}
 </style>
 </head>
 <body>
 
-<div id="toast"></div>
+<!-- APP LOADER -->
+<div id="appLoader">
+  <div class="loader-icon">🍽️</div>
+  <h2>PCCOER Smart Canteen</h2>
+  <p>Connecting to Firebase...</p>
+  <div class="spinner"></div>
+</div>
 
-<!-- ===== LOGIN SCREEN ===== -->
-<div id="screen-login" class="screen active">
-  <div class="login-card">
-    <div class="login-logo">
-      <div class="logo-icon">🍽️</div>
-      <h1>PCCOER Canteen</h1>
-      <p>Pimpri-Chinchwad College of Engineering & Research, Ravet</p>
-    </div>
-    <div class="login-btns">
-      <button class="login-btn login-btn-hostel" onclick="showAuth('hostel')">
-        <div class="icon">🏠</div>
-        <div>
-          <div>Hostel Student</div>
-          <div style="font-size:12px;opacity:0.7;font-weight:600">Login with Mess ID</div>
-        </div>
-      </button>
-      <button class="login-btn login-btn-normal" onclick="showAuth('normal')">
-        <div class="icon">👨‍🎓</div>
-        <div>
-          <div>Student / Faculty</div>
-          <div style="font-size:12px;opacity:0.7;font-weight:600">Order from menu</div>
-        </div>
-      </button>
-      <div class="login-divider">— or —</div>
-      <button class="login-btn login-btn-admin" onclick="showAuth('admin')">
-        <div class="icon">⚙️</div>
-        <div>
-          <div>Admin / Manager</div>
-          <div style="font-size:12px;opacity:0.7;font-weight:600">Manage canteen</div>
-        </div>
-      </button>
-    </div>
-    <div class="signup-link">New here? <a onclick="showAuth('signup')">Sign Up</a></div>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ========================= LOGIN PAGE ========================= -->
+<div id="loginPage" class="hidden">
+  <div class="login-hero">
+    <div class="login-logo">🍽️</div>
+    <h1>PCCOER Smart Canteen</h1>
+    <p>Pimpri-Chinchwad College of Engineering &amp; Research, Ravet</p>
+  </div>
+  <div class="login-box">
+    <h2>Welcome! Choose your login</h2>
+    <button class="role-btn" onclick="showAuth('normal')">
+      <span class="role-icon">🎓</span>
+      <span class="role-text">Student / Faculty<small>Login with phone & password</small></span>
+    </button>
+    <button class="role-btn" onclick="showAuth('hostel')">
+      <span class="role-icon">🏠</span>
+      <span class="role-text">Hostel Student<small>Login with Mess ID</small></span>
+    </button>
+    <button class="admin-btn-small" onclick="showAuth('admin')">🔑 Admin / Manager Login</button>
+    <div class="signup-hint">New student/faculty? <a onclick="showAuth('signup')">Sign Up here</a></div>
+  </div>
+  <footer style="background:transparent;border:none;margin-top:16px;color:rgba(255,255,255,.55);">
+    PCCOER Canteen © 2024 &nbsp;|&nbsp; <a onclick="showPolicyModal()" style="color:rgba(255,255,255,.75)">Policies</a>
+  </footer>
+</div>
+
+<!-- ========================= AUTH FORM PAGE ========================= -->
+<div id="authFormPage" class="hidden">
+  <div class="auth-box">
+    <div class="auth-back" onclick="showPage('loginPage')">← Back to Login</div>
+    <div id="authContent"></div>
   </div>
 </div>
 
-<!-- ===== AUTH SCREEN ===== -->
-<div id="screen-auth" class="screen">
-  <div class="auth-card">
-    <button class="auth-back" onclick="showScreen('screen-login')">← Back to Login</button>
-    <h2 id="auth-title">Login</h2>
-    <p class="subtitle" id="auth-subtitle"></p>
-    <div id="auth-form"></div>
-  </div>
-</div>
-
-<!-- ===== NORMAL STUDENT SCREEN ===== -->
-<div id="screen-normal" class="screen">
-  <div class="top-bar">
-    <div>
-      <h2>PCCOER Canteen</h2>
-      <div class="user-info" id="normal-user-name"></div>
+<!-- ========================= STUDENT PAGE ========================= -->
+<div id="studentPage" class="hidden">
+  <div class="s-header">
+    <div class="s-brand">
+      <div class="s-brand-icon">🍽️</div>
+      <div class="s-brand-text"><h3>PCCOER Canteen</h3><p id="sRoleLabel">Student / Faculty</p></div>
     </div>
-    <button class="logout-btn" onclick="logout()">Logout</button>
-  </div>
-  <div class="special-banner" id="special-banner" style="display:none">
-    <div class="label">⭐ Today's Special</div>
-    <div id="special-text"></div>
-  </div>
-  <div style="padding:16px 16px 8px">
-    <div class="menu-tabs">
-      <button class="menu-tab active" onclick="switchMenuTab('breakfast',this)">🌅 Breakfast</button>
-      <button class="menu-tab" onclick="switchMenuTab('lunch',this)">🍱 Lunch</button>
-      <button class="menu-tab" onclick="switchMenuTab('snacks',this)">🧃 Snacks</button>
+    <div class="s-header-right">
+      <div class="user-chip" id="sUserChip">User</div>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2)" onclick="logout()">Logout</button>
     </div>
   </div>
-  <div class="menu-content">
-    <div class="menu-grid" id="menu-grid"></div>
-  </div>
-  <div class="cart-bar" id="cart-bar">
-    <div>
-      <div class="cart-info" id="cart-count">0 items</div>
-      <div class="cart-total" id="cart-total">₹0</div>
+  <div class="offer-banner">
+    <div class="offer-banner-inner">
+      <div class="offer-label">🔥 Today's Special</div>
+      <div class="offer-text" id="offerTextEl">Loading...</div>
+      <div class="offer-cta" onclick="orderTodaySpecial()">Order Now →</div>
     </div>
-    <button class="view-cart-btn" onclick="showScreen('screen-cart');renderCart()">View Cart →</button>
   </div>
-</div>
-
-<!-- ===== CART SCREEN ===== -->
-<div id="screen-cart" class="screen">
-  <div class="back-bar">
-    <button onclick="showScreen('screen-normal')">←</button>
-    <h2>Your Cart</h2>
-  </div>
-  <div class="cart-items" id="cart-items-list"></div>
-  <div class="cart-summary" id="cart-summary-box"></div>
-  <div class="cart-actions">
-    <button class="btn btn-green btn-full" onclick="showScreen('screen-payment')">Proceed to Pay →</button>
-    <button class="btn btn-gray btn-full" onclick="clearCart();showScreen('screen-normal')">Cancel Order</button>
-  </div>
-</div>
-
-<!-- ===== PAYMENT SCREEN ===== -->
-<div id="screen-payment" class="screen">
-  <div class="back-bar">
-    <button onclick="showScreen('screen-cart')">←</button>
-    <h2>Payment</h2>
-  </div>
-  <div class="payment-options">
-    <div id="payment-order-summary" style="background:#fff;border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow)"></div>
-    <p style="font-size:14px;font-weight:700;color:var(--text2);margin-bottom:10px">SELECT PAYMENT METHOD</p>
-    <div class="payment-option selected" id="pay-upi" onclick="selectPayment('UPI / Online')">
-      <div class="pay-icon">📱</div>
-      <div>
-        <div class="pay-label">UPI / Online</div>
-        <div class="pay-desc">Pay via UPI, PhonePe, GPay</div>
-      </div>
-    </div>
-    <div class="payment-option" id="pay-cash" onclick="selectPayment('Cash on Pickup')">
-      <div class="pay-icon">💵</div>
-      <div>
-        <div class="pay-label">Cash on Pickup</div>
-        <div class="pay-desc">Pay at the counter</div>
-      </div>
-    </div>
-    <button class="btn btn-green btn-full" style="margin-top:16px" onclick="placeOrder()">Place Order ✓</button>
-    <button class="btn btn-gray btn-full" style="margin-top:8px" onclick="clearCart();showScreen('screen-normal')">Cancel Order</button>
-  </div>
-</div>
-
-<!-- ===== BILL SCREEN ===== -->
-<div id="screen-bill" class="screen">
-  <div class="bill-card" id="bill-content"></div>
-  <div class="bill-actions">
-    <button class="btn btn-green btn-full" onclick="showScreen('screen-normal')">Done ✓</button>
-    <button class="btn btn-outline btn-full" onclick="printBill()">🖨️ Print Bill</button>
-  </div>
-</div>
-
-<!-- ===== HOSTEL SCREEN ===== -->
-<div id="screen-hostel" class="screen">
-  <div class="top-bar">
-    <div>
-      <h2>Hostel Student</h2>
-      <div class="user-info" id="hostel-user-name"></div>
-    </div>
-    <button class="logout-btn" onclick="logout()">Logout</button>
-  </div>
-  <div class="hostel-home">
-    <div class="hostel-welcome">
-      <h2 id="hostel-welcome-name">Welcome!</h2>
-      <p id="hostel-mess-name"></p>
-    </div>
-    <div class="hostel-options">
-      <div class="hostel-option-card" id="scan-card" onclick="startQRScan()">
-        <div class="opt-icon green">📷</div>
-        <div>
-          <h3>Scan for Lunch</h3>
-          <p>Scan the mess QR code to check in</p>
-          <div id="scan-status"></div>
+  <div class="menu-wrap">
+    <div class="menu-left">
+      <div class="menu-tabs-bar">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('Breakfast',this)">🌅 Breakfast</button>
+          <button class="tab-btn" onclick="switchTab('Lunch',this)">☀️ Lunch</button>
+          <button class="tab-btn" onclick="switchTab('Snacks & Drinks',this)">🥤 Snacks</button>
         </div>
       </div>
-      <div class="hostel-option-card" onclick="switchToNormal()">
-        <div class="opt-icon orange">🍽️</div>
-        <div>
-          <h3>Order Extra Food</h3>
-          <p>Browse full menu &amp; order</p>
-        </div>
+      <div class="menu-scroll">
+        <div class="food-grid" id="foodGrid"><div class="empty-state"><div class="spinner" style="margin:0 auto"></div></div></div>
       </div>
     </div>
-  </div>
-</div>
-
-<!-- ===== QR SCANNER SCREEN ===== -->
-<div id="screen-qr" class="screen">
-  <div class="qr-header">
-    <button onclick="stopQRScan()">✕</button>
-    <h3>Scan Mess QR Code</h3>
-  </div>
-  <video id="qr-video" playsinline autoplay></video>
-  <canvas id="qr-canvas"></canvas>
-  <div class="qr-overlay"><div class="qr-frame"></div></div>
-  <div class="qr-hint">Point camera at the QR code</div>
-</div>
-
-<!-- ===== HOSTEL CONFIRM SCREEN ===== -->
-<div id="screen-hostel-confirm" class="screen">
-  <div class="confirm-card">
-    <div class="confirm-icon">✅</div>
-    <h2>Entry Confirmed!</h2>
-    <p style="color:var(--text2);font-size:14px">Lunch check-in successful</p>
-    <div class="confirm-detail" id="confirm-detail"></div>
-    <button class="btn btn-green btn-full" onclick="showScreen('screen-hostel')">Back to Home</button>
-  </div>
-</div>
-
-<!-- ===== ADMIN SCREEN ===== -->
-<div id="screen-admin" class="screen">
-  <div class="admin-sidebar">
-    <div class="sidebar-logo">
-      <h2>🍽️ PCCOER</h2>
-      <p>Admin Dashboard</p>
+    <div class="cart-panel">
+      <div class="cart-panel-header">🛒 Your Cart <span id="cpCount" style="background:var(--primary);color:#fff;border-radius:50%;width:22px;height:22px;font-size:12px;display:inline-flex;align-items:center;justify-content:center;">0</span></div>
+      <div class="cart-panel-body" id="cpBody"><div class="empty-state" style="padding:24px 10px"><div class="es-icon">🛒</div><p>Cart is empty</p></div></div>
+      <div class="cart-panel-footer" id="cpFooter"></div>
     </div>
-    <div class="admin-logout-mobile">
-      <button class="btn btn-red btn-sm btn-full" onclick="logout()">Logout</button>
+  </div>
+  <div class="mobile-cart-bar" id="mobileCartBar" style="display:none">
+    <div><div class="mcb-info" id="mcbItems">0 items</div><div class="mcb-total" id="mcbTotal">₹0</div></div>
+    <button class="btn btn-primary" onclick="showCartPage()">View Cart →</button>
+  </div>
+  <footer>PCCOER Canteen, Ravet &nbsp;|&nbsp; <a onclick="showPolicyModal()">Policies</a></footer>
+</div>
+
+<!-- CART PAGE -->
+<div id="cartPage" class="hidden">
+  <div class="page-hdr"><button class="back-btn" onclick="showPage('studentPage')">←</button><h2>Your Cart 🛒</h2></div>
+  <div class="cart-list" id="cartList"></div>
+  <div class="cart-summary" id="cartSummary"></div>
+  <div class="cart-btns">
+    <button class="btn btn-ghost btn-full" onclick="cancelOrder()">✕ Cancel</button>
+    <button class="btn btn-primary btn-full" onclick="showPayPage()">Proceed to Pay →</button>
+  </div>
+  <footer><a onclick="showPolicyModal()">Policies</a></footer>
+</div>
+
+<!-- PAYMENT PAGE -->
+<div id="paymentPage" class="hidden">
+  <div class="page-hdr"><button class="back-btn" onclick="showCartPage()">←</button><h2>Payment</h2></div>
+  <div style="padding:16px 18px">
+    <div class="card" style="margin-bottom:16px"><div class="card-header">Order Summary</div><div class="card-body" id="payOrderSummary"></div></div>
+    <h3 style="font-weight:900;font-size:15px;margin-bottom:12px;">Choose Payment Method</h3>
+    <label class="pay-method sel" id="pm1">
+      <input type="radio" name="pm" value="UPI/Online" checked style="display:none" onchange="selPay(this)">
+      <span class="pay-icon">📱</span><div class="pay-text"><h4>UPI / Online</h4><p>Pay via UPI, Net Banking, Card</p></div>
+    </label>
+    <label class="pay-method" id="pm2">
+      <input type="radio" name="pm" value="Cash on Pickup" style="display:none" onchange="selPay(this)">
+      <span class="pay-icon">💵</span><div class="pay-text"><h4>Cash on Pickup</h4><p>Pay when you collect your order</p></div>
+    </label>
+    <button class="btn btn-primary btn-full" style="margin-top:18px" id="placeOrderBtn" onclick="placeOrder()">✓ Place Order</button>
+  </div>
+  <footer><a onclick="showPolicyModal()">Policies</a></footer>
+</div>
+
+<!-- RECEIPT PAGE -->
+<div id="receiptPage" class="hidden">
+  <div class="page-hdr"><h2 style="margin:0 auto">Receipt 🎉</h2></div>
+  <div id="receiptContent"></div>
+  <div style="padding:0 18px 14px;display:flex;gap:10px;">
+    <button class="btn btn-ghost btn-full" onclick="downloadTxt()">⬇ Download</button>
+    <button class="btn btn-secondary btn-full" onclick="window.print()">🖨 Print</button>
+  </div>
+  <button class="btn btn-primary btn-full" style="margin:0 18px 30px" onclick="doneReceipt()">Done ✓</button>
+  <footer><a onclick="showPolicyModal()">Policies</a></footer>
+</div>
+
+<!-- ========================= HOSTEL PAGE ========================= -->
+<div id="hostelPage" class="hidden">
+  <div class="s-header">
+    <div class="s-brand"><div class="s-brand-icon">🏠</div><div class="s-brand-text"><h3>Hostel Check-in</h3><p>PCCOER, Ravet</p></div></div>
+    <div class="s-header-right">
+      <div class="user-chip" id="hostelUserChip">Student</div>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2)" onclick="logout()">Logout</button>
     </div>
-    <nav class="sidebar-nav">
-      <button class="nav-item active" onclick="switchAdmin('overview',this)"><span class="nav-icon">📊</span><span>Overview</span></button>
-      <button class="nav-item" onclick="switchAdmin('menu',this)"><span class="nav-icon">🍽️</span><span>Menu</span></button>
-      <button class="nav-item" onclick="switchAdmin('hostel',this)"><span class="nav-icon">🏠</span><span>Hostel</span></button>
-      <button class="nav-item" onclick="switchAdmin('counter',this)"><span class="nav-icon">🛒</span><span>Counter</span></button>
-      <button class="nav-item" onclick="switchAdmin('events',this)"><span class="nav-icon">🎉</span><span>Events</span></button>
-      <button class="nav-item" onclick="switchAdmin('reports',this)"><span class="nav-icon">📋</span><span>Reports</span></button>
+  </div>
+  <div id="hostelContent" style="padding:18px"></div>
+  <footer>PCCOER Canteen, Ravet &nbsp;|&nbsp; <a onclick="showPolicyModal()">Policies</a></footer>
+</div>
+
+<!-- ========================= HOSTEL QR SELF CHECK-IN ========================= -->
+<div id="hostelCheckinPage" class="hidden">
+  <div class="hc-box">
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:44px">🍽️</div>
+      <h2 style="font-size:18px;font-weight:900;margin-top:8px">PCCOER Canteen</h2>
+      <p style="font-size:12px;color:var(--muted)" id="hcMealLabel">Meal Check-in</p>
+    </div>
+    <div id="hcContent"></div>
+  </div>
+</div>
+
+<!-- ========================= ADMIN PAGE ========================= -->
+<div id="adminPage" class="hidden">
+  <div class="a-sidebar">
+    <div class="a-sb-brand"><h2>🍽️ PCCOER Canteen</h2><p>Admin Dashboard</p></div>
+    <nav class="a-sb-nav">
+      <div class="a-nav-item active" onclick="aTab('overview',this)" data-tab="overview"><span class="a-nav-icon">📊</span>Overview</div>
+      <div class="a-nav-item" onclick="aTab('menu',this)" data-tab="menu"><span class="a-nav-icon">🍱</span>Menu Management</div>
+      <div class="a-nav-item" onclick="aTab('hostel',this)" data-tab="hostel"><span class="a-nav-icon">🏠</span>Hostel QR Codes</div>
+      <div class="a-nav-item" onclick="aTab('counter',this)" data-tab="counter"><span class="a-nav-icon">🧾</span>Counter Orders</div>
+      <div class="a-nav-item" onclick="aTab('events',this)" data-tab="events"><span class="a-nav-icon">🎉</span>Event Orders</div>
+      <div class="a-nav-item" onclick="aTab('reports',this)" data-tab="reports"><span class="a-nav-icon">📈</span>Reports</div>
     </nav>
-    <div class="sidebar-logout">
-      <button class="btn btn-red btn-full" onclick="logout()">Logout</button>
-    </div>
+    <div class="a-sb-foot"><button class="btn btn-danger btn-sm btn-full" onclick="logout()">Logout</button></div>
   </div>
-
-  <div class="admin-main">
-    <!-- OVERVIEW -->
-    <div class="admin-section active" id="admin-overview">
-      <h2>📊 Overview</h2>
-      <div class="stats-grid" id="stats-grid"></div>
-      <div class="section-header">
-        <h3>Set Today's Special Offer</h3>
-      </div>
-      <div style="background:#fff;border-radius:14px;padding:16px;box-shadow:var(--shadow);margin-bottom:20px">
-        <div class="form-group">
-          <label>Special Offer Text</label>
-          <input type="text" id="special-offer-input" placeholder="e.g. Thali at ₹50 today only!">
-        </div>
-        <button class="btn btn-green" onclick="saveSpecialOffer()">Save Offer</button>
-      </div>
-      <div class="section-header"><h3>Today's Date</h3></div>
-      <div style="background:#fff;border-radius:14px;padding:16px;box-shadow:var(--shadow)">
-        <p style="font-size:16px;font-weight:700" id="today-date-display"></p>
+  <div class="a-main">
+    <div class="a-topbar">
+      <h2 id="aTabTitle">Dashboard Overview</h2>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="fb-status live" id="fbStatusBadge">🔥 Firebase Live</span>
+        <span style="font-size:12px;color:var(--muted)" id="aDateLabel"></span>
       </div>
     </div>
-
-    <!-- MENU MANAGEMENT -->
-    <div class="admin-section" id="admin-menu">
-      <div class="section-header">
-        <h2>🍽️ Menu Management</h2>
-        <button class="btn btn-green btn-sm" onclick="openAddMenuModal()">+ Add Item</button>
-      </div>
-      <div class="counter-menu-tabs" id="admin-menu-tabs">
-        <button class="counter-tab active" onclick="filterAdminMenu('all',this)">All</button>
-        <button class="counter-tab" onclick="filterAdminMenu('breakfast',this)">Breakfast</button>
-        <button class="counter-tab" onclick="filterAdminMenu('lunch',this)">Lunch</button>
-        <button class="counter-tab" onclick="filterAdminMenu('snacks',this)">Snacks</button>
-      </div>
-      <div class="menu-admin-grid" id="admin-menu-grid"></div>
-    </div>
-
-    <!-- HOSTEL MANAGEMENT -->
-    <div class="admin-section" id="admin-hostel">
-      <div class="section-header">
-        <h2>🏠 Hostel Students</h2>
-        <button class="btn btn-green btn-sm" onclick="openAddHostelModal()">+ Add Student</button>
-      </div>
-      <div class="table-wrap" style="margin-bottom:20px">
-        <table id="hostel-table">
-          <thead><tr><th>Mess ID</th><th>Name</th><th>Mess</th><th>Gender</th><th>Status</th><th>Today</th><th>Actions</th></tr></thead>
-          <tbody id="hostel-tbody"></tbody>
-        </table>
-      </div>
-      <div class="section-header"><h3>📋 Today's Check-in Log</h3></div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Name</th><th>Mess</th><th>Gender</th><th>Time</th></tr></thead>
-          <tbody id="checkin-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- COUNTER ORDERS -->
-    <div class="admin-section" id="admin-counter">
-      <h2>🛒 Counter Orders</h2>
-      <div class="form-group">
-        <label>Order Type</label>
-        <select id="counter-order-type">
-          <option>Student</option>
-          <option>Faculty</option>
-          <option>Event</option>
-        </select>
-      </div>
-      <div class="counter-menu-tabs" id="counter-tabs">
-        <button class="counter-tab active" onclick="switchCounterTab('breakfast',this)">🌅 Breakfast</button>
-        <button class="counter-tab" onclick="switchCounterTab('lunch',this)">🍱 Lunch</button>
-        <button class="counter-tab" onclick="switchCounterTab('snacks',this)">🧃 Snacks</button>
-      </div>
-      <div class="counter-items" id="counter-items"></div>
-      <div class="counter-cart-summary" id="counter-cart-summary"></div>
-      <div style="display:flex;gap:10px">
-        <button class="btn btn-green" style="flex:1" onclick="saveCounterOrder()">✓ Save Order</button>
-        <button class="btn btn-red" style="flex:1" onclick="clearCounterCart()">✕ Cancel</button>
-      </div>
-    </div>
-
-    <!-- EVENTS -->
-    <div class="admin-section" id="admin-events">
-      <h2>🎉 Event Orders</h2>
-      <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:var(--shadow);margin-bottom:20px">
-        <h3 style="margin-bottom:16px;font-size:16px;font-weight:800">New Event Order</h3>
-        <div class="form-group"><label>Head Name (Teacher/Student)</label><input type="text" id="ev-head" placeholder="e.g. Prof. Sharma"></div>
-        <div class="form-group"><label>Phone Number</label><input type="tel" id="ev-phone" placeholder="10-digit number"></div>
-        <div class="form-group"><label>Event Date</label><input type="date" id="ev-date"></div>
-        <div class="form-group">
-          <label>Menu Items</label>
-          <div id="ev-items"></div>
-          <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="addEventItemRow()">+ Add Item</button>
-        </div>
-        <div class="form-group">
-          <label>Payment Method</label>
-          <div style="display:flex;gap:16px;margin-top:8px">
-            <label style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;cursor:pointer"><input type="radio" name="ev-payment" value="Prepaid" checked> Prepaid</label>
-            <label style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;cursor:pointer"><input type="radio" name="ev-payment" value="Postpaid"> Postpaid</label>
-          </div>
-        </div>
-        <div style="display:flex;gap:10px">
-          <button class="btn btn-green" onclick="submitEventOrder()">Submit Order</button>
-          <button class="btn btn-gray" onclick="clearEventForm()">Clear</button>
-        </div>
-      </div>
-      <div class="section-header"><h3>Past Event Orders</h3></div>
-      <div class="table-wrap">
-        <table><thead><tr><th>Date</th><th>Head</th><th>Phone</th><th>Items</th><th>Payment</th></tr></thead>
-        <tbody id="events-tbody"></tbody></table>
-      </div>
-    </div>
-
-    <!-- REPORTS -->
-    <div class="admin-section" id="admin-reports">
-      <h2>📋 Reports & Billing</h2>
-      <div class="stats-grid" id="report-stats" style="margin-bottom:20px"></div>
-      <div class="section-header">
-        <h3>Bill History</h3>
-        <button class="btn btn-green btn-sm" onclick="exportExcel()">⬇️ Download Excel</button>
-      </div>
-      <div class="filter-bar" id="report-filter">
-        <button class="filter-btn active" onclick="filterReports('today',this)">Today</button>
-        <button class="filter-btn" onclick="filterReports('week',this)">This Week</button>
-        <button class="filter-btn" onclick="filterReports('month',this)">This Month</button>
-        <button class="filter-btn" onclick="filterReports('year',this)">This Year</button>
-        <button class="filter-btn" onclick="filterReports('all',this)">All</button>
-      </div>
-      <div class="table-wrap">
-        <table><thead><tr><th>Date</th><th>Time</th><th>Order ID</th><th>Type</th><th>Items</th><th>Total</th><th>Payment</th></tr></thead>
-        <tbody id="reports-tbody"></tbody></table>
-      </div>
+    <div class="a-content" id="aContent"></div>
+  </div>
+  <div class="a-bottom-nav">
+    <div class="a-bn-inner">
+      <button class="a-bn-item active" onclick="aTab('overview',this)" data-tab="overview"><span>📊</span>Overview</button>
+      <button class="a-bn-item" onclick="aTab('menu',this)" data-tab="menu"><span>🍱</span>Menu</button>
+      <button class="a-bn-item" onclick="aTab('hostel',this)" data-tab="hostel"><span>🏠</span>Hostel</button>
+      <button class="a-bn-item" onclick="aTab('counter',this)" data-tab="counter"><span>🧾</span>Counter</button>
+      <button class="a-bn-item" onclick="aTab('reports',this)" data-tab="reports"><span>📈</span>Reports</button>
     </div>
   </div>
 </div>
 
-<!-- ADD MENU MODAL -->
-<div class="modal-overlay" id="modal-menu">
+<!-- POLICY MODAL -->
+<div id="policyModal" class="modal-overlay hidden">
   <div class="modal">
-    <h3 id="menu-modal-title">Add Menu Item</h3>
-    <div class="form-group"><label>Item Name</label><input type="text" id="mi-name" placeholder="e.g. Poha"></div>
-    <div class="form-group"><label>Price (₹)</label><input type="number" id="mi-price" placeholder="20"></div>
-    <div class="form-group"><label>Category</label>
-      <select id="mi-cat">
-        <option value="breakfast">Breakfast</option>
-        <option value="lunch">Lunch</option>
-        <option value="snacks">Snacks & Drinks</option>
-      </select>
+    <div class="modal-header"><span class="modal-title">📜 Policies & Legal</span><button class="modal-close" onclick="closeModal('policyModal')">×</button></div>
+    <div class="modal-body">
+      <div class="policy-sec"><h3>1. Privacy Policy</h3><p>Personal data collected only for order processing. Not shared with any third party. Stored in Firebase Firestore with restricted access. Only admin can access sensitive user data.</p></div>
+      <div class="policy-sec"><h3>2. Terms & Conditions</h3><p>Users must provide accurate information. Confirmed orders may not be modified. Misuse may result in account suspension.</p></div>
+      <div class="policy-sec"><h3>3. Cookie Policy</h3><p>Session cookies used for login persistence. Users may disable via browser settings.</p></div>
+      <div class="policy-sec"><h3>4. Legal Compliance</h3><p>Developed in compliance with: Information Technology Act 2000, Digital Personal Data Protection Act 2023.</p></div>
+      <div class="policy-sec"><h3>5. Data Security</h3><p>All data secured via Firebase Authentication and Firestore security rules. No payment credentials stored.</p></div>
+      <div class="policy-sec"><h3>6. Disclaimer</h3><p>Academic prototype for PCCOER. Developers not responsible for unintended errors.</p></div>
+      <div class="policy-sec"><h3>7. Intellectual Property</h3><p>All rights reserved. Developed exclusively for PCCOER, Ravet.</p></div>
     </div>
-    <div class="form-group"><label>Photo URL (optional)</label><input type="text" id="mi-photo" placeholder="https://..."></div>
-    <div class="modal-btns">
-      <button class="btn btn-gray" onclick="closeModal('modal-menu')">Cancel</button>
-      <button class="btn btn-green" onclick="saveMenuItem()">Save</button>
-    </div>
+    <div class="modal-footer"><button class="btn btn-primary" onclick="closeModal('policyModal')">Close</button></div>
   </div>
 </div>
 
-<!-- ADD HOSTEL STUDENT MODAL -->
-<div class="modal-overlay" id="modal-hostel">
-  <div class="modal">
-    <h3>Add Hostel Student</h3>
-    <div class="form-group"><label>Full Name</label><input type="text" id="hs-name" placeholder="Student name"></div>
-    <div class="form-group"><label>Mess Name</label><input type="text" id="hs-mess" placeholder="e.g. Samruddhi Mess"></div>
-    <div class="form-group"><label>Gender</label>
-      <select id="hs-gender"><option value="Male">Male</option><option value="Female">Female</option></select>
-    </div>
-    <div class="modal-btns">
-      <button class="btn btn-gray" onclick="closeModal('modal-hostel')">Cancel</button>
-      <button class="btn btn-green" onclick="saveHostelStudent()">Add Student</button>
-    </div>
+<!-- GENERIC MODAL -->
+<div id="gModal" class="modal-overlay hidden">
+  <div class="modal" id="gModalInner">
+    <div class="modal-header"><span class="modal-title" id="gModalTitle">Info</span><button class="modal-close" onclick="closeModal('gModal')">×</button></div>
+    <div class="modal-body" id="gModalBody"></div>
+    <div class="modal-footer" id="gModalFoot"></div>
   </div>
 </div>
 
-<!-- CREDENTIALS MODAL -->
-<div class="modal-overlay" id="modal-credentials">
-  <div class="modal">
-    <h3 id="cred-title">Student Credentials</h3>
-    <div class="credentials-box" id="cred-content"></div>
-    <div style="text-align:center;margin:12px 0" id="cred-qr"></div>
-    <p style="font-size:12px;color:var(--text2);text-align:center">Share these credentials with the student to login</p>
-    <div class="modal-btns">
-      <button class="btn btn-gray" onclick="copyCredentials()">📋 Copy</button>
-      <button class="btn btn-green" onclick="closeModal('modal-credentials')">Done</button>
-    </div>
-  </div>
-</div>
-
-<!-- EDIT HOSTEL MODAL -->
-<div class="modal-overlay" id="modal-edit-hostel">
-  <div class="modal">
-    <h3>Edit Student</h3>
-    <input type="hidden" id="edit-hs-id">
-    <div class="form-group"><label>Full Name</label><input type="text" id="edit-hs-name"></div>
-    <div class="form-group"><label>Mess Name</label><input type="text" id="edit-hs-mess"></div>
-    <div class="form-group"><label>Gender</label>
-      <select id="edit-hs-gender"><option value="Male">Male</option><option value="Female">Female</option></select>
-    </div>
-    <div class="modal-btns">
-      <button class="btn btn-gray" onclick="closeModal('modal-edit-hostel')">Cancel</button>
-      <button class="btn btn-green" onclick="updateHostelStudent()">Save</button>
-    </div>
-  </div>
-</div>
-
+<!-- ========================= FIREBASE + APP SCRIPTS ========================= -->
 <script type="module">
+// ============================================================
+// FIREBASE INIT
+// ============================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, push, update, remove, onValue, child } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBmxuHgZ1U3EKM1vQhLmOkkUJ69gUmNnDc",
-  authDomain: "smart-canteen-billing-system.firebaseapp.com",
-  projectId: "smart-canteen-billing-system",
-  storageBucket: "smart-canteen-billing-system.firebasestorage.app",
-  messagingSenderId: "769920138703",
-  appId: "1:769920138703:web:6a947993b8f5d7502426ba",
-  databaseURL: "https://smart-canteen-billing-system-default-rtdb.firebaseio.com"
+  apiKey: "AIzaSyBlvl8xy72C5Iey0Ke1F1kHY9YbcqIsbUQ",
+  authDomain: "pccoer-canteen.firebaseapp.com",
+  projectId: "pccoer-canteen",
+  storageBucket: "pccoer-canteen.firebasestorage.app",
+  messagingSenderId: "875981518194",
+  appId: "1:875981518194:web:4aa9bd3bc62690834959eb",
+  measurementId: "G-CZ0WBQ8G4M"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-// ===== STATE =====
+// ============================================================
+// STATE
+// ============================================================
 let currentUser = null;
 let currentRole = null;
-let cart = {};
-let menuItems = [];
-let hostelStudents = [];
-let orders = [];
-let events = [];
-let counterCart = {};
-let selectedPayment = 'UPI / Online';
-let currentMenuTab = 'breakfast';
-let currentAdminMenuFilter = 'all';
-let currentCounterTab = 'breakfast';
+let cart = [];
+let menuTab = 'Breakfast';
+let payMethod = 'UPI/Online';
+let lastReceipt = null;
+let counterCart = [];
+let currentAdminTab = 'overview';
 let reportFilter = 'today';
-let qrStream = null;
-let qrScanning = false;
-let editingMenuId = null;
-let credentialsData = null;
+let menuItemsCache = [];
+let uploadingImage = false;
+let currentEditItemId = null;
 
-// ===== DEFAULT MENU =====
-const defaultMenu = [
-  {name:'Poha',price:20,category:'breakfast',photo:'https://loremflickr.com/300/200/poha,food',available:true},
-  {name:'Upma',price:20,category:'breakfast',photo:'https://loremflickr.com/300/200/upma,food',available:true},
-  {name:'Idli',price:20,category:'breakfast',photo:'https://loremflickr.com/300/200/idli,food',available:true},
-  {name:'Tea',price:5,category:'breakfast',photo:'https://loremflickr.com/300/200/tea,drink',available:true},
-  {name:'Coffee',price:10,category:'breakfast',photo:'https://loremflickr.com/300/200/coffee,drink',available:true},
-  {name:'Biscuits',price:5,category:'breakfast',photo:'https://loremflickr.com/300/200/biscuit,snack',available:true},
-  {name:'Rice Plate',price:60,category:'lunch',photo:'https://loremflickr.com/300/200/rice,indian',available:true},
-  {name:'Rice + Sabji',price:50,category:'lunch',photo:'https://loremflickr.com/300/200/sabji,indian',available:true},
-  {name:'Rice + Dal',price:45,category:'lunch',photo:'https://loremflickr.com/300/200/dal,indian',available:true},
-  {name:'Chapati + Bhaji',price:40,category:'lunch',photo:'https://loremflickr.com/300/200/chapati,indian',available:true},
-  {name:'Vada Pav',price:15,category:'snacks',photo:'https://loremflickr.com/300/200/vadapav,food',available:true},
-  {name:'Misal Pav',price:30,category:'snacks',photo:'https://loremflickr.com/300/200/misal,food',available:true},
-  {name:'Samosa',price:10,category:'snacks',photo:'https://loremflickr.com/300/200/samosa,food',available:true},
-  {name:'Lassi',price:30,category:'snacks',photo:'https://loremflickr.com/300/200/lassi,drink',available:true},
-  {name:'Sprite',price:20,category:'snacks',photo:'https://loremflickr.com/300/200/sprite,drink',available:true},
-  {name:'Coca-Cola',price:20,category:'snacks',photo:'https://loremflickr.com/300/200/cola,drink',available:true},
-];
+// ============================================================
+// HELPERS
+// ============================================================
+function showPage(id){
+  ['loginPage','authFormPage','studentPage','cartPage','paymentPage','receiptPage','hostelPage','hostelCheckinPage','adminPage'].forEach(p=>{
+    const el=document.getElementById(p);if(el)el.classList.add('hidden');
+  });
+  const t=document.getElementById(id);if(t)t.classList.remove('hidden');
+}
+function showToast(msg,type='success'){
+  const t=document.createElement('div');t.className=`toast ${type}`;
+  const icons={success:'✅',error:'❌',info:'ℹ️'};
+  t.innerHTML=`<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(()=>t.remove(),3200);
+}
+function openModal(id){document.getElementById(id).classList.remove('hidden');}
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+window.closeModal = closeModal;
+function showGModal(title,body,foot=''){
+  document.getElementById('gModalTitle').textContent=title;
+  document.getElementById('gModalBody').innerHTML=body;
+  document.getElementById('gModalFoot').innerHTML=foot||`<button class="btn btn-primary" onclick="closeModal('gModal')">Close</button>`;
+  document.getElementById('gModalInner').className='modal';
+  openModal('gModal');
+}
+function showGModalLg(title,body,foot=''){showGModal(title,body,foot);document.getElementById('gModalInner').className='modal modal-lg';}
+function todayStr(){return new Date().toLocaleDateString('en-IN');}
+function nowTime(){return new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});}
+function randId(n=5){return Math.random().toString(36).substring(2,2+n).toUpperCase();}
+function showPolicyModal(){openModal('policyModal');}
+window.showPolicyModal = showPolicyModal;
+function parseDate(str){
+  if(!str)return null;const p=str.split('/');
+  if(p.length!==3)return null;
+  return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+}
+function toggleEye(id,btn){
+  const inp=document.getElementById(id);
+  if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}
+  else{inp.type='password';btn.textContent='👁️';}
+}
+window.toggleEye=toggleEye;
 
-// ===== INIT =====
-async function init() {
-  document.getElementById('today-date-display') && (document.getElementById('today-date-display').textContent = new Date().toDateString());
-  const menuSnap = await get(ref(db,'menu'));
-  if(!menuSnap.exists()) {
-    for(const item of defaultMenu) await push(ref(db,'menu'), item);
+// ============================================================
+// SEED DEFAULT DATA
+// ============================================================
+async function seedDefaultData(){
+  // Admin credentials
+  const adminRef = doc(db,'settings','admin');
+  const adminSnap = await getDoc(adminRef);
+  if(!adminSnap.exists()){
+    await setDoc(adminRef,{id:'Admin',password:'123456789'});
   }
-  const adminSnap = await get(ref(db,'admin'));
-  if(!adminSnap.exists()) await set(ref(db,'admin'), {id:'Admin',password:'123456789'});
-  addEventItemRow();
+  // Special offer
+  const offerRef = doc(db,'settings','special_offer');
+  const offerSnap = await getDoc(offerRef);
+  if(!offerSnap.exists()){
+    await setDoc(offerRef,{text:'🎉 Today\'s Special: Fresh homemade meals at the best prices!'});
+  }
+  // Default menu items
+  const menuSnap = await getDocs(collection(db,'menu_items'));
+  if(menuSnap.empty){
+    const defaults = [
+      {name:'Poha',price:20,category:'Breakfast',imgUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Kanda_poha.jpg/320px-Kanda_poha.jpg',available:true,order:1},
+      {name:'Upma',price:20,category:'Breakfast',imgUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Rava_upma.jpg/320px-Rava_upma.jpg',available:true,order:2},
+      {name:'Idli',price:20,category:'Breakfast',imgUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/South_Indian_Food.jpg/320px-South_Indian_Food.jpg',available:true,order:3},
+      {name:'Tea',price:5,category:'Breakfast',imgUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/A-glass-of-chai.jpg/320px-A-glass-of-chai.jpg',available:true,order:4},
+      {name:'Coffee',price:10,category:'Breakfast',imgUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/A_small_cup_of_coffee.JPG/320px-A_small_cup_of_coffee.JPG',available:true,order:5},
+      {name:'Biscuits',price:5,category:'Breakfast',imgUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Parle-G-Biscuits.jpg/320px-Parle-G-Biscuits.jpg',available:true,order:6},
+      {name:'Rice Plate',price:60,category:'Lunch',imgUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Thali_platter.jpg/320px-Thali_platter.jpg',available:true,order:7},
+      {name:'Rice + Sabji',price:50,category:'Lunch',imgUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Mixed_vegetable_curry.jpg/320px-Mixed_vegetable_curry.jpg',available:true,order:8},
+      {name:'Rice + Dal',price:45,category:'Lunch',imgUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Dal_makhani.jpg/320px-Dal_makhani.jpg',available:true,order:9},
+      {name:'Chapati + Bhaji',price:40,category:'Lunch',imgUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Chapati.jpg/320px-Chapati.jpg',available:true,order:10},
+      {name:'Vada Pav',price:15,category:'Snacks & Drinks',imgUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Vada_pav_-_Pune.JPG/320px-Vada_pav_-_Pune.JPG',available:true,order:11},
+      {name:'Misal Pav',price:30,category:'Snacks & Drinks',imgUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Misal_Pav.jpg/320px-Misal_Pav.jpg',available:true,order:12},
+      {name:'Samosa',price:10,category:'Snacks & Drinks',imgUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Samosa_2-2.jpg/320px-Samosa_2-2.jpg',available:true,order:13},
+      {name:'Lassi',price:30,category:'Snacks & Drinks',imgUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Lassi_served_at_Minar_restaurant.jpg/320px-Lassi_served_at_Minar_restaurant.jpg',available:true,order:14},
+      {name:'Sprite',price:20,category:'Snacks & Drinks',imgUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Sprite_limon.jpg/320px-Sprite_limon.jpg',available:true,order:15},
+      {name:'Coca-Cola',price:20,category:'Snacks & Drinks',imgUrl:'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=320&h=200&fit=crop',available:true,order:16},
+    ];
+    for(const item of defaults){
+      await addDoc(collection(db,'menu_items'),item);
+    }
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+async function init(){
+  try{
+    document.getElementById('aDateLabel').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    await seedDefaultData();
+    // Check if URL has hostel checkin param
+    const params = new URLSearchParams(window.location.search);
+    const hcParam = params.get('hc');
+    if(hcParam){openHostelCheckinPage(hcParam);} else {showPage('loginPage');}
+    document.getElementById('appLoader').classList.add('hidden');
+  } catch(e){
+    console.error('Init error:',e);
+    document.getElementById('appLoader').querySelector('p').textContent='Connection failed. Check internet.';
+    showToast('Firebase connection error. Check console.','error');
+    setTimeout(()=>{document.getElementById('appLoader').classList.add('hidden');showPage('loginPage');},2000);
+  }
 }
 init();
 
-// ===== HELPERS =====
-window.showScreen = (id) => {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-};
-function toast(msg, type='') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = type; t.style.display='block';
-  setTimeout(()=>t.style.display='none', 3000);
+// ============================================================
+// AUTH
+// ============================================================
+function showAuth(type){
+  showPage('authFormPage');
+  const c=document.getElementById('authContent');
+  if(type==='normal'){
+    c.innerHTML=`<h2>Student / Faculty Login</h2><p class="auth-sub">Login with your phone and password</p>
+    <div class="form-group"><label class="form-label">Phone Number</label>
+      <div class="input-wrap has-icon"><span class="input-icon">📱</span><input class="form-control" id="f_phone" placeholder="10-digit phone" type="tel" maxlength="10"></div></div>
+    <div class="form-group"><label class="form-label">Password</label>
+      <div class="input-wrap"><input class="form-control" id="f_pass" type="password" placeholder="Password">
+      <button class="input-eye" onclick="toggleEye('f_pass',this)" type="button">👁️</button></div></div>
+    <a class="forgot-link" onclick="showForgotModal('normal')">Forgot password?</a>
+    <button class="btn btn-primary btn-full" onclick="loginNormal()">Login →</button>
+    <p style="text-align:center;margin-top:13px;font-size:12px;color:var(--muted)">New? <a style="color:var(--primary);cursor:pointer;font-weight:800" onclick="showAuth('signup')">Sign Up</a></p>`;
+  } else if(type==='hostel'){
+    c.innerHTML=`<h2>Hostel Student Login</h2><p class="auth-sub">Enter Mess ID and password from admin</p>
+    <div class="form-group"><label class="form-label">Mess ID</label>
+      <div class="input-wrap has-icon"><span class="input-icon">🏠</span><input class="form-control" id="f_messId" placeholder="e.g. MESS001" style="text-transform:uppercase"></div></div>
+    <div class="form-group"><label class="form-label">Password</label>
+      <div class="input-wrap"><input class="form-control" id="f_messPass" type="password" placeholder="Password">
+      <button class="input-eye" onclick="toggleEye('f_messPass',this)" type="button">👁️</button></div></div>
+    <a class="forgot-link" onclick="showForgotModal('hostel')">Forgot password?</a>
+    <button class="btn btn-primary btn-full" onclick="loginHostel()">Login →</button>`;
+  } else if(type==='admin'){
+    c.innerHTML=`<h2>Admin Login</h2><p class="auth-sub">Access the canteen management dashboard</p>
+    <div class="form-group"><label class="form-label">Admin ID</label>
+      <div class="input-wrap has-icon"><span class="input-icon">🔑</span><input class="form-control" id="f_adminId" placeholder="Admin ID"></div></div>
+    <div class="form-group"><label class="form-label">Password</label>
+      <div class="input-wrap"><input class="form-control" id="f_adminPass" type="password" placeholder="Password">
+      <button class="input-eye" onclick="toggleEye('f_adminPass',this)" type="button">👁️</button></div></div>
+    <a class="forgot-link" onclick="showForgotModal('admin')">Forgot password?</a>
+    <button class="btn btn-primary btn-full" onclick="loginAdmin()">Login →</button>`;
+  } else if(type==='signup'){
+    c.innerHTML=`<h2>Create Account</h2><p class="auth-sub">Register as Student / Faculty</p>
+    <div class="form-group"><label class="form-label">Full Name</label>
+      <div class="input-wrap has-icon"><span class="input-icon">👤</span><input class="form-control" id="f_name" placeholder="Your full name"></div></div>
+    <div class="form-group"><label class="form-label">Phone Number</label>
+      <div class="input-wrap has-icon"><span class="input-icon">📱</span><input class="form-control" id="f_sphone" placeholder="10-digit phone" type="tel" maxlength="10"></div></div>
+    <div class="form-group"><label class="form-label">Password</label>
+      <div class="input-wrap"><input class="form-control" id="f_spass" type="password" placeholder="Create password">
+      <button class="input-eye" onclick="toggleEye('f_spass',this)" type="button">👁️</button></div></div>
+    <div class="form-group"><label class="form-label">Confirm Password</label>
+      <div class="input-wrap"><input class="form-control" id="f_spass2" type="password" placeholder="Re-enter password">
+      <button class="input-eye" onclick="toggleEye('f_spass2',this)" type="button">👁️</button></div></div>
+    <button class="btn btn-primary btn-full" onclick="signupNormal()">Create Account →</button>
+    <p style="text-align:center;margin-top:13px;font-size:12px;color:var(--muted)">Already registered? <a style="color:var(--primary);cursor:pointer;font-weight:800" onclick="showAuth('normal')">Login</a></p>`;
+  }
 }
-window.closeModal = (id) => document.getElementById(id).classList.remove('active');
-function openModal(id) { document.getElementById(id).classList.add('active'); }
-function genId() { return Math.random().toString(36).substr(2,8).toUpperCase(); }
-function genOrderId() { return 'ORD-' + Date.now().toString().slice(-6); }
-function today() { return new Date().toISOString().split('T')[0]; }
-function now() { return new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}); }
+window.showAuth=showAuth;
 
-// ===== AUTH =====
-window.showAuth = (type) => {
-  showScreen('screen-auth');
-  const titles = {hostel:'Hostel Student Login',normal:'Student / Faculty Login',admin:'Admin Login',signup:'Create Account'};
-  const subs = {hostel:'Enter your Mess ID and password assigned by admin',normal:'Login to order food',admin:'Admin access only',signup:'Sign up as a new student or faculty'};
-  document.getElementById('auth-title').textContent = titles[type];
-  document.getElementById('auth-subtitle').textContent = subs[type];
-  const forms = {
-    hostel: `<div class="form-group"><label>Mess ID</label><div class="pass-wrap"><input type="text" id="login-messid" placeholder="e.g. MESS001" style="padding-left:44px"><span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:20px">🏠</span></div></div><div class="form-group"><label>Password</label><div class="pass-wrap"><input type="password" id="login-pass" placeholder="Your password"><button class="pass-toggle" onclick="togglePass('login-pass',this)">🙈</button></div></div><p style="text-align:right;margin-bottom:16px"><a href="#" style="color:var(--orange);font-weight:700;font-size:13px">Forgot password?</a></p><button class="btn btn-orange btn-full" onclick="loginHostel()">Login →</button>`,
-    normal: `<div class="form-group"><label>Phone Number</label><input type="tel" id="login-phone" placeholder="10-digit number"></div><div class="form-group"><label>Password</label><div class="pass-wrap"><input type="password" id="login-pass-n" placeholder="Your password"><button class="pass-toggle" onclick="togglePass('login-pass-n',this)">🙈</button></div></div><button class="btn btn-orange btn-full" onclick="loginNormal()">Login →</button>`,
-    admin: `<div class="form-group"><label>Admin ID</label><input type="text" id="login-admin-id" placeholder="Admin ID"></div><div class="form-group"><label>Password</label><div class="pass-wrap"><input type="password" id="login-admin-pass" placeholder="Password"><button class="pass-toggle" onclick="togglePass('login-admin-pass',this)">🙈</button></div></div><button class="btn btn-orange btn-full" onclick="loginAdmin()">Login →</button>`,
-    signup: `<div class="form-group"><label>Full Name</label><input type="text" id="signup-name" placeholder="Your name"></div><div class="form-group"><label>Phone Number</label><input type="tel" id="signup-phone" placeholder="10-digit number"></div><div class="form-group"><label>Password</label><div class="pass-wrap"><input type="password" id="signup-pass" placeholder="Create password"><button class="pass-toggle" onclick="togglePass('signup-pass',this)">🙈</button></div></div><button class="btn btn-green btn-full" onclick="signupUser()">Create Account →</button>`
-  };
-  document.getElementById('auth-form').innerHTML = forms[type];
-};
-
-window.togglePass = (id, btn) => {
-  const inp = document.getElementById(id);
-  inp.type = inp.type==='password'?'text':'password';
-  btn.textContent = inp.type==='password'?'🙈':'👁️';
-};
-
-window.loginHostel = async () => {
-  const messId = document.getElementById('login-messid').value.trim().toUpperCase();
-  const pass = document.getElementById('login-pass').value.trim();
-  if(!messId||!pass){toast('Please fill all fields','error');return;}
-  const snap = await get(ref(db,'hostelStudents'));
-  if(!snap.exists()){toast('Invalid Mess ID or Password','error');return;}
-  let found = null;
-  snap.forEach(c=>{const d=c.val();if(d.messId===messId&&d.password===pass&&d.status==='active'){found={...d,key:c.key};}});
-  if(!found){toast('Invalid Mess ID or Password','error');return;}
-  currentUser = found; currentRole='hostel';
-  document.getElementById('hostel-user-name').textContent = found.name;
-  document.getElementById('hostel-welcome-name').textContent = 'Welcome, ' + found.name + '!';
-  document.getElementById('hostel-mess-name').textContent = found.messName + ' • ' + found.gender;
-  const checkedIn = found.lastCheckin === today();
-  const scanStatus = document.getElementById('scan-status');
-  if(checkedIn) {
-    scanStatus.innerHTML = '<span class="locked-badge">✓ Already checked in today</span>';
-    document.getElementById('scan-card').style.opacity='0.6';
-    document.getElementById('scan-card').onclick = ()=>toast('Already checked in for today','error');
+function showForgotModal(role){
+  if(role==='hostel'){
+    showGModal('Forgot Password','<p style="font-size:13px;color:var(--muted)">Hostel student passwords are managed by admin only. Please contact the canteen admin to reset your password.</p>');
+  } else if(role==='admin'){
+    showGModal('Reset Admin Password',`
+      <div class="form-group"><label class="form-label">Admin ID</label><input class="form-control" id="fg_adminId" placeholder="Admin ID"></div>
+      <div class="form-group"><label class="form-label">New Password</label>
+        <div class="input-wrap"><input class="form-control" id="fg_adminPass" type="password" placeholder="New password">
+        <button class="input-eye" onclick="toggleEye('fg_adminPass',this)">👁️</button></div></div>`,
+      `<button class="btn btn-ghost" onclick="closeModal('gModal')">Cancel</button>
+       <button class="btn btn-primary" onclick="resetAdminPass()">Reset</button>`);
   } else {
-    scanStatus.innerHTML = '';
-    document.getElementById('scan-card').style.opacity='1';
-    document.getElementById('scan-card').onclick = startQRScan;
+    showGModal('Reset Password',`
+      <div class="form-group"><label class="form-label">Phone Number</label><input class="form-control" id="fg_phone" placeholder="Registered phone" type="tel"></div>
+      <div class="form-group"><label class="form-label">New Password</label>
+        <div class="input-wrap"><input class="form-control" id="fg_pass" type="password" placeholder="New password">
+        <button class="input-eye" onclick="toggleEye('fg_pass',this)">👁️</button></div></div>`,
+      `<button class="btn btn-ghost" onclick="closeModal('gModal')">Cancel</button>
+       <button class="btn btn-primary" onclick="resetNormalPass()">Reset</button>`);
   }
-  showScreen('screen-hostel');
-};
+}
+window.showForgotModal=showForgotModal;
 
-window.loginNormal = async () => {
-  const phone = document.getElementById('login-phone-n')||document.getElementById('login-phone');
-  const phoneVal = (document.getElementById('login-phone')||{value:''}).value.trim();
-  const pass = (document.getElementById('login-pass-n')||{value:''}).value.trim();
-  if(!phoneVal||!pass){toast('Please fill all fields','error');return;}
-  const snap = await get(ref(db,'users'));
-  let found = null;
-  if(snap.exists()) snap.forEach(c=>{const d=c.val();if(d.phone===phoneVal&&d.password===pass){found=d;}});
-  if(!found){toast('Invalid credentials. Please sign up first.','error');return;}
-  currentUser=found; currentRole='normal';
-  document.getElementById('normal-user-name').textContent = found.name;
-  loadMenu();
-  loadSpecialOffer();
-  showScreen('screen-normal');
-};
+async function resetNormalPass(){
+  const phone=document.getElementById('fg_phone').value.trim();
+  const pass=document.getElementById('fg_pass').value.trim();
+  if(!phone||!pass){showToast('Fill all fields','error');return;}
+  const q=query(collection(db,'users'),where('phone','==',phone));
+  const snap=await getDocs(q);
+  if(snap.empty){showToast('Phone not found','error');return;}
+  await updateDoc(snap.docs[0].ref,{password:pass});
+  closeModal('gModal');showToast('Password reset!');
+}
+window.resetNormalPass=resetNormalPass;
 
-window.loginAdmin = async () => {
-  const id = document.getElementById('login-admin-id').value.trim();
-  const pass = document.getElementById('login-admin-pass').value.trim();
-  const snap = await get(ref(db,'admin'));
-  if(!snap.exists()||snap.val().id!==id||snap.val().password!==pass){toast('Invalid admin credentials','error');return;}
-  currentUser={name:'Admin'}; currentRole='admin';
-  showScreen('screen-admin');
-  loadAdminData();
-};
+async function resetAdminPass(){
+  const id=document.getElementById('fg_adminId').value.trim();
+  const pass=document.getElementById('fg_adminPass').value.trim();
+  const snap=await getDoc(doc(db,'settings','admin'));
+  if(snap.data().id!==id){showToast('Admin ID incorrect','error');return;}
+  await updateDoc(doc(db,'settings','admin'),{password:pass});
+  closeModal('gModal');showToast('Admin password reset!');
+}
+window.resetAdminPass=resetAdminPass;
 
-window.signupUser = async () => {
-  const name = document.getElementById('signup-name').value.trim();
-  const phone = document.getElementById('signup-phone').value.trim();
-  const pass = document.getElementById('signup-pass').value.trim();
-  if(!name||!phone||!pass){toast('Please fill all fields','error');return;}
-  if(phone.length!==10){toast('Enter valid 10-digit phone number','error');return;}
-  const snap = await get(ref(db,'users'));
-  if(snap.exists()) {
-    let exists = false;
-    snap.forEach(c=>{if(c.val().phone===phone) exists=true;});
-    if(exists){toast('Phone number already registered','error');return;}
-  }
-  await push(ref(db,'users'),{name,phone,password:pass});
-  toast('Account created! Please login.','success');
-  showAuth('normal');
-};
+async function loginNormal(){
+  const phone=document.getElementById('f_phone').value.trim();
+  const pass=document.getElementById('f_pass').value.trim();
+  if(!phone||!pass){showToast('Fill all fields','error');return;}
+  const q=query(collection(db,'users'),where('phone','==',phone),where('password','==',pass));
+  const snap=await getDocs(q);
+  if(snap.empty){showToast('Invalid credentials','error');return;}
+  currentUser={id:snap.docs[0].id,...snap.docs[0].data()};currentRole='normal';
+  loadStudentPage();
+}
+window.loginNormal=loginNormal;
 
-window.logout = () => {
-  currentUser=null; currentRole=null; cart={}; counterCart={};
-  showScreen('screen-login');
-};
+async function loginHostel(){
+  const messId=document.getElementById('f_messId').value.trim().toUpperCase();
+  const pass=document.getElementById('f_messPass').value.trim();
+  const q=query(collection(db,'hostel_students'),where('messId','==',messId),where('password','==',pass),where('status','==','active'));
+  const snap=await getDocs(q);
+  if(snap.empty){showToast('Invalid Mess ID or Password','error');return;}
+  currentUser={id:snap.docs[0].id,...snap.docs[0].data()};currentRole='hostel';
+  loadHostelPage();
+}
+window.loginHostel=loginHostel;
 
-// ===== MENU =====
-async function loadMenu() {
-  const snap = await get(ref(db,'menu'));
-  menuItems = [];
-  if(snap.exists()) snap.forEach(c=>menuItems.push({...c.val(),id:c.key}));
-  renderMenu();
+async function loginAdmin(){
+  const id=document.getElementById('f_adminId').value.trim();
+  const pass=document.getElementById('f_adminPass').value.trim();
+  const snap=await getDoc(doc(db,'settings','admin'));
+  const admin=snap.data();
+  if(id===admin.id&&pass===admin.password){
+    currentUser={name:'Admin'};currentRole='admin';loadAdminPage();
+  } else {showToast('Invalid admin credentials','error');}
+}
+window.loginAdmin=loginAdmin;
+
+async function signupNormal(){
+  const name=document.getElementById('f_name').value.trim();
+  const phone=document.getElementById('f_sphone').value.trim();
+  const pass=document.getElementById('f_spass').value.trim();
+  const pass2=document.getElementById('f_spass2').value.trim();
+  if(!name||!phone||!pass||!pass2){showToast('Fill all fields','error');return;}
+  if(phone.length!==10||isNaN(phone)){showToast('Enter valid 10-digit phone','error');return;}
+  if(pass!==pass2){showToast('Passwords do not match','error');return;}
+  const q=query(collection(db,'users'),where('phone','==',phone));
+  const snap=await getDocs(q);
+  if(!snap.empty){showToast('Phone already registered','error');return;}
+  const ref2=await addDoc(collection(db,'users'),{name,phone,password:pass,createdAt:serverTimestamp()});
+  currentUser={id:ref2.id,name,phone};currentRole='normal';
+  showToast('Account created! Welcome '+name);loadStudentPage();
+}
+window.signupNormal=signupNormal;
+
+function logout(){currentUser=null;currentRole=null;cart=[];counterCart=[];showPage('loginPage');}
+window.logout=logout;
+
+// ============================================================
+// STUDENT / FACULTY PAGE
+// ============================================================
+async function loadStudentPage(){
+  showPage('studentPage');
+  document.getElementById('sUserChip').textContent=currentUser.name;
+  document.getElementById('sRoleLabel').textContent='Student / Faculty';
+  cart=[];menuTab='Breakfast';
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
+  // Load offer
+  const offerSnap=await getDoc(doc(db,'settings','special_offer'));
+  document.getElementById('offerTextEl').textContent=offerSnap.exists()?offerSnap.data().text:'Welcome!';
+  await loadMenuGrid();
+  updateCartUI();
 }
 
-function renderMenu() {
-  const grid = document.getElementById('menu-grid');
-  const filtered = menuItems.filter(i=>i.category===currentMenuTab);
-  if(!filtered.length){grid.innerHTML='<p style="color:var(--text2);text-align:center;padding:40px 0;grid-column:1/-1">No items available</p>';return;}
-  grid.innerHTML = filtered.map(item=>`
-    <div class="menu-card">
-      <img src="${item.photo||'https://loremflickr.com/300/200/food'}" alt="${item.name}" loading="lazy" onerror="this.src='https://loremflickr.com/300/200/food'">
-      <div class="menu-card-body">
-        <div class="menu-card-name">${item.name}</div>
-        <div class="menu-card-price">₹${item.price}</div>
-        ${!item.available?'<div class="unavailable-badge">Unavailable</div>':`
-        <div class="qty-control">
-          <button class="qty-btn" onclick="updateCart('${item.id}',-1)">−</button>
-          <span class="qty-num" id="qty-${item.id}">${cart[item.id]||0}</span>
-          <button class="qty-btn" onclick="updateCart('${item.id}',1)">+</button>
+async function loadMenuGrid(){
+  const snap=await getDocs(query(collection(db,'menu_items'),orderBy('order','asc')));
+  menuItemsCache=snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderFoodGrid();
+}
+
+function renderFoodGrid(){
+  const items=menuItemsCache.filter(x=>x.category===menuTab);
+  const grid=document.getElementById('foodGrid');
+  if(!grid)return;
+  if(!items.length){grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="es-icon">🍽️</div><p>No items in this category</p></div>`;return;}
+  grid.innerHTML=items.map(item=>{
+    const inCart=cart.find(c=>c.id===item.id);const qty=inCart?inCart.qty:0;
+    return `<div class="food-card${!item.available?' unavail':''}">
+      <img class="food-card-img" src="${item.imgUrl||''}" alt="${item.name}" onerror="this.style.background='#f0f2f5';this.style.display='block'">
+      <div class="food-card-body">
+        <div class="food-card-top"><div class="food-name">${item.name}</div><div class="food-price">₹${item.price}</div></div>
+        ${!item.available?`<div class="food-unavail-tag">Unavailable</div>`:`
+        <div class="qty-row">
+          ${qty===0?`<button class="add-btn" onclick="addToCart('${item.id}')">+ Add to Cart</button>`:`
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty('${item.id}',-1)">−</button>
+            <span class="qty-num">${qty}</span>
+            <button class="qty-btn" onclick="changeQty('${item.id}',1)">+</button>
+          </div>`}
         </div>`}
       </div>
-    </div>
-  `).join('');
-  updateCartBar();
-}
-
-window.switchMenuTab = (tab, btn) => {
-  currentMenuTab = tab;
-  document.querySelectorAll('.menu-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderMenu();
-};
-
-window.updateCart = (id, delta) => {
-  const item = menuItems.find(i=>i.id===id);
-  if(!item) return;
-  cart[id] = Math.max(0, (cart[id]||0)+delta);
-  if(cart[id]===0) delete cart[id];
-  const qtyEl = document.getElementById('qty-'+id);
-  if(qtyEl) qtyEl.textContent = cart[id]||0;
-  updateCartBar();
-};
-
-function updateCartBar() {
-  const total = getCartTotal();
-  const count = Object.values(cart).reduce((a,b)=>a+b,0);
-  const bar = document.getElementById('cart-bar');
-  document.getElementById('cart-count').textContent = count + ' item' + (count!==1?'s':'');
-  document.getElementById('cart-total').textContent = '₹' + total;
-  count > 0 ? bar.classList.add('visible') : bar.classList.remove('visible');
-}
-
-function getCartTotal() {
-  return Object.entries(cart).reduce((sum,[id,qty])=>{
-    const item = menuItems.find(i=>i.id===id);
-    return sum + (item?item.price*qty:0);
-  },0);
-}
-
-function clearCart() { cart={}; updateCartBar(); renderMenu(); }
-window.clearCart = clearCart;
-
-window.renderCart = () => {
-  const listEl = document.getElementById('cart-items-list');
-  const summEl = document.getElementById('cart-summary-box');
-  const payEl = document.getElementById('payment-order-summary');
-  const entries = Object.entries(cart).filter(([,q])=>q>0);
-  if(!entries.length){listEl.innerHTML='<p style="text-align:center;padding:40px;color:var(--text2)">Cart is empty</p>';return;}
-  listEl.innerHTML = entries.map(([id,qty])=>{
-    const item = menuItems.find(i=>i.id===id);
-    return item?`<div class="cart-item"><div><div class="cart-item-name">${item.name}</div><div class="cart-item-price">₹${item.price} × ${qty}</div></div><div style="display:flex;align-items:center;gap:8px"><button class="qty-btn" onclick="updateCart('${id}',-1);renderCart()">−</button><span style="font-weight:800">${qty}</span><button class="qty-btn" onclick="updateCart('${id}',1);renderCart()">+</button><span style="font-weight:900;color:var(--green);min-width:50px;text-align:right">₹${item.price*qty}</span></div></div>`:''
+    </div>`;
   }).join('');
-  const total = getCartTotal();
-  const summary = `<div class="cart-summary-row"><span>Subtotal</span><span>₹${total}</span></div><div class="cart-summary-row"><span>Taxes</span><span>None</span></div><div class="cart-summary-row total"><span>Total</span><span>₹${total}</span></div>`;
-  summEl.innerHTML = summary;
-  if(payEl) payEl.innerHTML = '<p style="font-weight:800;margin-bottom:8px">Order Summary</p>' + summary;
-};
-
-window.selectPayment = (method) => {
-  selectedPayment = method;
-  document.getElementById('pay-upi').classList.toggle('selected', method==='UPI / Online');
-  document.getElementById('pay-cash').classList.toggle('selected', method==='Cash on Pickup');
-};
-
-window.placeOrder = async () => {
-  const entries = Object.entries(cart).filter(([,q])=>q>0);
-  if(!entries.length){toast('Cart is empty','error');return;}
-  const items = entries.map(([id,qty])=>{const item=menuItems.find(i=>i.id===id);return{name:item.name,qty,price:item.price};});
-  const total = getCartTotal();
-  const orderId = genOrderId();
-  const order = {
-    orderId, date:today(), time:now(),
-    type: currentRole==='hostel'?'Hostel-Normal':'Normal',
-    items, total, payment:selectedPayment,
-    user: currentUser?.name||'Guest'
-  };
-  await push(ref(db,'orders'), order);
-  showBill(order);
-  clearCart();
-};
-
-function showBill(order) {
-  const itemRows = order.items.map(i=>`<div class="bill-row"><span>${i.name} x${i.qty}</span><span>₹${i.price*i.qty}</span></div>`).join('');
-  document.getElementById('bill-content').innerHTML = `
-    <div class="bill-header">
-      <h3>🍽️ PCCOER CANTEEN</h3>
-      <p>Pimpri-Chinchwad, Ravet</p>
-      <p style="margin-top:6px;font-size:11px">${order.date} | ${order.time}</p>
-      <p style="font-size:11px">Order: #${order.orderId}</p>
-    </div>
-    <div style="font-size:12px;margin-bottom:6px;display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding-bottom:6px"><span>Item</span><span>Amount</span></div>
-    ${itemRows}
-    <div class="bill-row total"><span>TOTAL</span><span>₹${order.total}</span></div>
-    <div style="margin-top:8px;font-size:12px;color:var(--text2)">Payment: ${order.payment}</div>
-    <div class="bill-footer">No taxes applied<br>Thank you! Visit again 😊<br><small>For PCCOER Students & Staff</small></div>
-  `;
-  showScreen('screen-bill');
 }
+window.renderFoodGrid=renderFoodGrid;
 
-window.printBill = () => window.print();
+function switchTab(tab,btn){menuTab=tab;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderFoodGrid();}
+window.switchTab=switchTab;
 
-async function loadSpecialOffer() {
-  const snap = await get(ref(db,'specialOffer'));
-  const banner = document.getElementById('special-banner');
-  const text = document.getElementById('special-text');
-  if(snap.exists()&&snap.val()) {
-    text.textContent = snap.val();
-    banner.style.display='block';
-  } else banner.style.display='none';
+function addToCart(id){
+  const item=menuItemsCache.find(x=>x.id===id);if(!item)return;
+  const ex=cart.find(c=>c.id===id);
+  if(ex)ex.qty++;else cart.push({id:item.id,name:item.name,price:item.price,imgUrl:item.imgUrl||'',qty:1});
+  renderFoodGrid();updateCartUI();showToast(item.name+' added!');
 }
+window.addToCart=addToCart;
 
-// ===== HOSTEL QR =====
-window.startQRScan = () => {
-  if(currentUser?.lastCheckin===today()){toast('Already checked in today','error');return;}
-  showScreen('screen-qr');
-  qrScanning = true;
-  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(stream=>{
-    qrStream=stream;
-    const video=document.getElementById('qr-video');
-    video.srcObject=stream;
-    video.play();
-    requestAnimationFrame(scanFrame);
-  }).catch(()=>toast('Camera access denied','error'));
-};
-
-function scanFrame() {
-  if(!qrScanning) return;
-  const video=document.getElementById('qr-video');
-  const canvas=document.getElementById('qr-canvas');
-  if(video.readyState===video.HAVE_ENOUGH_DATA) {
-    canvas.width=video.videoWidth;
-    canvas.height=video.videoHeight;
-    canvas.getContext('2d').drawImage(video,0,0);
-    const imageData=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height);
-    const code=jsQR(imageData.data,imageData.width,imageData.height);
-    if(code) handleQRScan(code.data);
-    else requestAnimationFrame(scanFrame);
-  } else requestAnimationFrame(scanFrame);
+function changeQty(id,delta){
+  const idx=cart.findIndex(x=>x.id===id);if(idx===-1)return;
+  cart[idx].qty+=delta;if(cart[idx].qty<=0)cart.splice(idx,1);
+  renderFoodGrid();updateCartUI();
 }
+window.changeQty=changeQty;
 
-async function handleQRScan(data) {
-  qrScanning=false; stopQRScan();
-  const snap=await get(ref(db,'hostelStudents'));
-  if(!snap.exists()){toast('Student not registered','error');showScreen('screen-hostel');return;}
-  let found=null, foundKey=null;
-  snap.forEach(c=>{const d=c.val();if(d.messId===data){found=d;foundKey=c.key;}});
-  if(!found){toast('Student not registered','error');showScreen('screen-hostel');return;}
-  if(found.lastCheckin===today()){toast('Already checked in today','error');showScreen('screen-hostel');return;}
-  await update(ref(db,'hostelStudents/'+foundKey),{lastCheckin:today()});
-  await push(ref(db,'checkins'),{messId:found.messId,name:found.name,messName:found.messName,gender:found.gender,date:today(),time:now()});
-  const orderId=genOrderId();
-  await push(ref(db,'orders'),{orderId,date:today(),time:now(),type:'Hostel',items:[{name:'Full Rice Plate (Lunch)',qty:1,price:0}],total:0,payment:'Mess Contract',user:found.name});
-  document.getElementById('confirm-detail').innerHTML=`
-    <div class="confirm-detail-row"><span class="label">Name</span><span class="value">${found.name}</span></div>
-    <div class="confirm-detail-row"><span class="label">Mess</span><span class="value">${found.messName}</span></div>
-    <div class="confirm-detail-row"><span class="label">Gender</span><span class="value">${found.gender}</span></div>
-    <div class="confirm-detail-row"><span class="label">Date</span><span class="value">${today()}</span></div>
-    <div class="confirm-detail-row"><span class="label">Time</span><span class="value">${now()}</span></div>
-    <div class="confirm-detail-row"><span class="label">Meal</span><span class="value">Full Rice Plate (Lunch)</span></div>
-  `;
-  showScreen('screen-hostel-confirm');
-  currentUser.lastCheckin=today();
-  document.getElementById('scan-card').style.opacity='0.6';
-  document.getElementById('scan-status').innerHTML='<span class="locked-badge">✓ Checked in today</span>';
-}
-
-window.stopQRScan = () => {
-  qrScanning=false;
-  if(qrStream){qrStream.getTracks().forEach(t=>t.stop());qrStream=null;}
-  if(currentRole==='hostel') showScreen('screen-hostel');
-};
-
-window.switchToNormal = () => {
-  currentRole='hostel-normal';
-  loadMenu();
-  loadSpecialOffer();
-  showScreen('screen-normal');
-};
-
-// ===== ADMIN =====
-async function loadAdminData() {
-  const [menuSnap,hostelSnap,orderSnap,eventSnap,offerSnap,checkinSnap] = await Promise.all([
-    get(ref(db,'menu')),get(ref(db,'hostelStudents')),get(ref(db,'orders')),
-    get(ref(db,'events')),get(ref(db,'specialOffer')),get(ref(db,'checkins'))
-  ]);
-  menuItems=[];
-  if(menuSnap.exists()) menuSnap.forEach(c=>menuItems.push({...c.val(),id:c.key}));
-  hostelStudents=[];
-  if(hostelSnap.exists()) hostelSnap.forEach(c=>hostelStudents.push({...c.val(),key:c.key}));
-  orders=[];
-  if(orderSnap.exists()) orderSnap.forEach(c=>orders.push({...c.val(),key:c.key}));
-  events=[];
-  if(eventSnap.exists()) eventSnap.forEach(c=>events.push({...c.val(),key:c.key}));
-  if(offerSnap.exists()) document.getElementById('special-offer-input').value=offerSnap.val()||'';
-  renderAdminStats();
-  renderAdminMenu();
-  renderHostelTable();
-  renderCheckinLog();
-  renderCounterMenu();
-  renderEventsList();
-  renderReports();
-  document.getElementById('today-date-display') && (document.getElementById('today-date-display').textContent=new Date().toDateString());
-}
-
-function renderAdminStats() {
-  const todayOrders=orders.filter(o=>o.date===today());
-  const weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
-  const weekOrders=orders.filter(o=>new Date(o.date)>=weekAgo);
-  const monthOrders=orders.filter(o=>o.date&&o.date.startsWith(today().slice(0,7)));
-  const yearOrders=orders.filter(o=>o.date&&o.date.startsWith(today().slice(0,4)));
-  const todayTotal=todayOrders.reduce((s,o)=>s+o.total,0);
-  const weekTotal=weekOrders.reduce((s,o)=>s+o.total,0);
-  const monthTotal=monthOrders.reduce((s,o)=>s+o.total,0);
-  const yearTotal=yearOrders.reduce((s,o)=>s+o.total,0);
-  document.getElementById('stats-grid').innerHTML=`
-    <div class="stat-card"><div class="stat-label">Today</div><div class="stat-value">₹${todayTotal}</div><div class="stat-sub">${todayOrders.length} orders</div></div>
-    <div class="stat-card"><div class="stat-label">This Week</div><div class="stat-value">₹${weekTotal}</div><div class="stat-sub">${weekOrders.length} orders</div></div>
-    <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value">₹${monthTotal}</div><div class="stat-sub">${monthOrders.length} orders</div></div>
-    <div class="stat-card"><div class="stat-label">This Year</div><div class="stat-value">₹${yearTotal}</div><div class="stat-sub">${yearOrders.length} orders</div></div>
-  `;
-}
-
-window.switchAdmin = (section, btn) => {
-  document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-  document.getElementById('admin-'+section).classList.add('active');
-  btn.classList.add('active');
-};
-
-// MENU ADMIN
-function renderAdminMenu() {
-  const filter = currentAdminMenuFilter;
-  const filtered = filter==='all'?menuItems:menuItems.filter(i=>i.category===filter);
-  const grid=document.getElementById('admin-menu-grid');
-  if(!filtered.length){grid.innerHTML='<p style="color:var(--text2);padding:20px;grid-column:1/-1">No items found</p>';return;}
-  grid.innerHTML=filtered.map(item=>`
-    <div class="menu-admin-card">
-      <img src="${item.photo||'https://loremflickr.com/300/200/food'}" alt="${item.name}" loading="lazy" onerror="this.src='https://loremflickr.com/300/200/food'">
-      <div class="menu-admin-card-body">
-        <div class="menu-admin-card-name">${item.name}</div>
-        <div class="menu-admin-card-price">₹${item.price}</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <span style="font-size:12px;color:var(--text2)">${item.category}</span>
-          <label class="toggle-switch"><input type="checkbox" ${item.available?'checked':''} onchange="toggleItemAvail('${item.id}',this.checked)"><span class="toggle-slider"></span></label>
-        </div>
-        <div class="action-btns">
-          <button class="btn btn-gray btn-sm" onclick="openEditMenuModal('${item.id}')">Edit</button>
-          <button class="btn btn-red btn-sm" onclick="deleteMenuItem('${item.id}')">Del</button>
+function updateCartUI(){
+  const total=cart.reduce((s,x)=>s+x.price*x.qty,0);
+  const count=cart.reduce((s,x)=>s+x.qty,0);
+  const bar=document.getElementById('mobileCartBar');
+  if(bar){bar.style.display=count>0?'flex':'none';document.getElementById('mcbItems').textContent=count+' item'+(count>1?'s':'');document.getElementById('mcbTotal').textContent='₹'+total;}
+  const cpCount=document.getElementById('cpCount');if(cpCount)cpCount.textContent=count;
+  const cpBody=document.getElementById('cpBody');const cpFoot=document.getElementById('cpFooter');
+  if(!cpBody)return;
+  if(!cart.length){cpBody.innerHTML=`<div class="empty-state" style="padding:24px 10px"><div class="es-icon">🛒</div><p>Cart is empty</p></div>`;if(cpFoot)cpFoot.innerHTML='';return;}
+  cpBody.innerHTML=cart.map(item=>`
+    <div class="cp-item">
+      <img class="cp-img" src="${item.imgUrl}" alt="${item.name}" onerror="this.style.background='#f0f2f5'">
+      <div class="cp-info"><div class="cp-name">${item.name}</div><div class="cp-price">₹${item.price} × ${item.qty}</div>
+        <div class="qty-control" style="margin-top:5px;width:fit-content;transform:scale(.85);transform-origin:left">
+          <button class="qty-btn" onclick="changeQty('${item.id}',-1)">−</button>
+          <span class="qty-num" style="min-width:26px">${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty('${item.id}',1)">+</button>
         </div>
       </div>
+      <div class="cp-total">₹${item.price*item.qty}</div>
+    </div>`).join('');
+  if(cpFoot)cpFoot.innerHTML=`<div class="cart-total-row"><span>Total</span><span>₹${total}</span></div>
+    <button class="btn btn-ghost btn-sm btn-full" style="margin-bottom:8px" onclick="cancelOrder()">✕ Cancel</button>
+    <button class="btn btn-primary btn-full" onclick="showCartPage()">Checkout (${count}) →</button>`;
+}
+
+function orderTodaySpecial(){
+  showGModal('🔥 Today\'s Special',`<div style="background:linear-gradient(135deg,var(--primary),#ff6b35);color:#fff;border-radius:12px;padding:20px;text-align:center;margin-bottom:14px"><div style="font-size:40px;margin-bottom:10px">🌟</div><div style="font-weight:900;font-size:15px">${document.getElementById('offerTextEl').textContent}</div></div><p style="color:var(--muted);font-size:13px;text-align:center">Browse the menu and add items to your cart!</p>`,`<button class="btn btn-primary btn-full" onclick="closeModal('gModal')">Browse Menu →</button>`);
+}
+window.orderTodaySpecial=orderTodaySpecial;
+
+function showCartPage(){if(!cart.length){showToast('Cart is empty','error');return;}showPage('cartPage');renderCartPage();}
+window.showCartPage=showCartPage;
+
+function renderCartPage(){
+  const total=cart.reduce((s,x)=>s+x.price*x.qty,0);const count=cart.reduce((s,x)=>s+x.qty,0);
+  document.getElementById('cartList').innerHTML=cart.map(item=>`
+    <div class="cart-item">
+      <img class="ci-img" src="${item.imgUrl}" alt="${item.name}" onerror="this.style.background='#f0f2f5'">
+      <div class="ci-info"><div class="ci-name">${item.name}</div><div class="ci-price-each">₹${item.price} each</div>
+        <div class="qty-control" style="margin-top:8px;width:fit-content">
+          <button class="qty-btn" onclick="changeCartQty('${item.id}',-1)">−</button>
+          <span class="qty-num" style="min-width:30px">${item.qty}</span>
+          <button class="qty-btn" onclick="changeCartQty('${item.id}',1)">+</button>
+        </div>
+      </div>
+      <div class="ci-total">₹${item.price*item.qty}</div>
+    </div>`).join('');
+  document.getElementById('cartSummary').innerHTML=`<div class="cs-row"><span>Items (${count})</span><span>₹${total}</span></div><div class="cs-row"><span>Taxes</span><span style="color:var(--success)">₹0</span></div><div class="cs-row"><span>Total</span><span>₹${total}</span></div>`;
+}
+
+function changeCartQty(id,delta){
+  const idx=cart.findIndex(x=>x.id===id);if(idx===-1)return;
+  cart[idx].qty+=delta;if(cart[idx].qty<=0)cart.splice(idx,1);
+  if(!cart.length){showPage('studentPage');updateCartUI();renderFoodGrid();return;}
+  renderCartPage();updateCartUI();
+}
+window.changeCartQty=changeCartQty;
+
+function cancelOrder(){cart=[];updateCartUI();renderFoodGrid();showPage('studentPage');showToast('Order cancelled','info');}
+window.cancelOrder=cancelOrder;
+
+function showPayPage(){
+  showPage('paymentPage');
+  const total=cart.reduce((s,x)=>s+x.price*x.qty,0);
+  document.getElementById('payOrderSummary').innerHTML=cart.map(i=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span>${i.name} × ${i.qty}</span><span style="font-weight:800">₹${i.price*i.qty}</span></div>`).join('')+`<div style="display:flex;justify-content:space-between;padding:10px 0;font-weight:900;font-size:16px"><span>Total</span><span style="color:var(--primary)">₹${total}</span></div>`;
+}
+window.showPayPage=showPayPage;
+
+function selPay(radio){payMethod=radio.value;document.querySelectorAll('.pay-method').forEach(el=>el.classList.remove('sel'));radio.closest('.pay-method').classList.add('sel');}
+window.selPay=selPay;
+
+async function placeOrder(overrideItems,overrideType,overridePay){
+  const items=overrideItems||cart;const type=overrideType||'Normal';const payment=overridePay||payMethod;
+  const total=items.reduce((s,x)=>s+x.price*x.qty,0);
+  const orderId='ORD-'+randId(5);
+  const order={orderId,date:todayStr(),time:nowTime(),type,items:items.map(i=>({name:i.name,qty:i.qty,price:i.price})),total,payment,createdAt:serverTimestamp()};
+  const btn=document.getElementById('placeOrderBtn');if(btn){btn.disabled=true;btn.textContent='Saving...';}
+  try{
+    await addDoc(collection(db,'orders'),order);
+    lastReceipt=order;
+    if(!overrideItems){cart=[];updateCartUI();}
+    showReceiptPage(order);showToast('Order placed!');
+  } catch(e){showToast('Failed to save order','error');console.error(e);}
+  if(btn){btn.disabled=false;btn.textContent='✓ Place Order';}
+  return orderId;
+}
+window.placeOrder=placeOrder;
+
+function showReceiptPage(order){
+  showPage('receiptPage');
+  document.getElementById('receiptContent').innerHTML=`<div class="receipt-wrap">${buildReceiptHTML(order)}</div>`;
+}
+function buildReceiptHTML(o){
+  return `<h3 style="text-align:center;font-size:17px;font-weight:900">PCCOER CANTEEN</h3>
+  <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:12px">Pimpri-Chinchwad College, Ravet</div>
+  <hr class="r-div">
+  <div class="r-row"><span>Date: ${o.date}</span><span>Time: ${o.time}</span></div>
+  <div class="r-row"><span>Order ID: #${o.orderId}</span><span>Type: ${o.type}</span></div>
+  <hr class="r-div">
+  <div style="display:grid;grid-template-columns:1fr auto auto;font-weight:900;font-size:11px;gap:8px;padding:3px 0;border-bottom:1px dashed #ccc;margin-bottom:5px"><span>Item</span><span>Qty</span><span>Amt</span></div>
+  ${o.items.map(i=>`<div class="r-row"><span>${i.name}</span><span>${i.qty}×</span><span>₹${i.price*i.qty}</span></div>`).join('')}
+  <hr class="r-div">
+  <div class="r-row r-total"><span>TOTAL:</span><span>₹${o.total}</span></div>
+  <div class="r-row" style="font-size:11px"><span>Payment:</span><span>${o.payment}</span></div>
+  <div style="font-size:10px;color:var(--muted);margin-top:3px">No taxes applied.</div>
+  <div class="r-foot">Thank you! Visit again.<br>For PCCOER Students & Staff</div>`;
+}
+function downloadTxt(){
+  if(!lastReceipt)return;const o=lastReceipt;
+  const txt=`PCCOER CANTEEN\nPimpri-Chinchwad College, Ravet\n================================\nDate: ${o.date}  Time: ${o.time}\nOrder ID: #${o.orderId}\nType: ${o.type}\n--------------------------------\n${o.items.map(i=>`${i.name.padEnd(16)}${i.qty}x   Rs.${i.price*i.qty}`).join('\n')}\n--------------------------------\nTOTAL: Rs.${o.total}\nPayment: ${o.payment}\nNo taxes applied.\n================================\nThank you!\n================================`;
+  const b=new Blob([txt],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`Receipt_${o.orderId}.txt`;a.click();
+}
+window.downloadTxt=downloadTxt;
+
+function doneReceipt(){if(currentRole==='admin'){showPage('adminPage');renderAContent();}else{loadStudentPage();}}
+window.doneReceipt=doneReceipt;
+
+// ============================================================
+// HOSTEL PAGE
+// ============================================================
+async function loadHostelPage(){
+  showPage('hostelPage');
+  document.getElementById('hostelUserChip').textContent=currentUser.name;
+  await renderHostelHome();
+}
+
+async function renderHostelHome(){
+  const today=todayStr();
+  const q=query(collection(db,'hostel_sessions'),where('messId','==',currentUser.messId),where('date','==',today));
+  const snap=await getDocs(q);
+  const checkedIn=!snap.empty;
+  const lastSession=checkedIn?snap.docs[snap.docs.length-1].data():null;
+  const histSnap=await getDocs(query(collection(db,'hostel_sessions'),where('messId','==',currentUser.messId),orderBy('createdAt','desc')));
+  const history=histSnap.docs.slice(0,5).map(d=>d.data());
+  document.getElementById('hostelContent').innerHTML=`
+    <div class="hostel-hero">
+      <h2>Hello, ${currentUser.name}! 👋</h2>
+      <p>Mess: ${currentUser.messName}</p>
+      <div class="hostel-meta">
+        <div class="hostel-meta-chip">ID: ${currentUser.messId}</div>
+        <div class="hostel-meta-chip">${currentUser.gender}</div>
+        ${checkedIn?`<div class="hostel-meta-chip" style="background:rgba(34,197,94,.25)">✅ Checked in today</div>`:''}
+      </div>
     </div>
-  `).join('');
+    ${checkedIn?`<div class="card" style="margin-bottom:16px;border-left:4px solid var(--success)"><div class="card-body" style="display:flex;align-items:center;gap:14px"><div style="font-size:36px">✅</div><div><div style="font-weight:900;color:var(--success)">Today's Meal Confirmed!</div><div style="font-size:13px;color:var(--muted);margin-top:3px">${lastSession.meal} check-in at ${lastSession.time}</div></div></div></div>`:''}
+    <div class="h-opt-card" onclick="showHostelQRInfo()">
+      <div style="font-size:36px">${checkedIn?'🔒':'🍽️'}</div>
+      <div><h3 style="font-weight:900;font-size:15px">${checkedIn?'Already Checked In':'Check-in for Today\'s Meal'}</h3>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">${checkedIn?'See you tomorrow!':'Scan the canteen QR code at the counter'}</p></div>
+    </div>
+    <div class="sec-title" style="margin-top:20px;font-size:16px;font-weight:900;display:flex;align-items:center;gap:10px">Recent Check-ins <span style="flex:1;height:2px;background:var(--border);display:block"></span></div>
+    ${history.length?`<div class="tbl-wrap"><table class="data-tbl"><thead><tr><th>Date</th><th>Meal</th><th>Time</th></tr></thead><tbody>${history.map(s=>`<tr><td>${s.date}</td><td>${s.meal}</td><td>${s.time}</td></tr>`).join('')}</tbody></table></div>`:`<div class="empty-state"><div class="es-icon">📋</div><p>No check-ins yet</p></div>`}`;
 }
 
-window.filterAdminMenu = (f,btn) => {
-  currentAdminMenuFilter=f;
-  document.querySelectorAll('#admin-menu-tabs .counter-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderAdminMenu();
-};
+function showHostelQRInfo(){
+  showGModal('How to Check In 📷',`<div style="text-align:center"><div style="font-size:44px;margin-bottom:12px">📷</div><p style="font-weight:700;font-size:15px;margin-bottom:8px">Scan the Canteen QR Code</p><p style="color:var(--muted);font-size:13px;line-height:1.7">Go to the canteen counter and scan the <strong>QR code displayed there</strong>.<br><br>A page opens — enter your Mess ID and mobile number to confirm your meal.</p></div>`);
+}
+window.showHostelQRInfo=showHostelQRInfo;
 
-window.openAddMenuModal = () => {
-  editingMenuId=null;
-  document.getElementById('menu-modal-title').textContent='Add Menu Item';
-  document.getElementById('mi-name').value='';
-  document.getElementById('mi-price').value='';
-  document.getElementById('mi-cat').value='breakfast';
-  document.getElementById('mi-photo').value='';
-  openModal('modal-menu');
-};
+// ============================================================
+// HOSTEL QR SELF CHECK-IN PAGE
+// ============================================================
+function openHostelCheckinPage(meal){
+  showPage('hostelCheckinPage');
+  document.getElementById('hcMealLabel').textContent=`${meal} Check-in — ${todayStr()}`;
+  renderCheckinForm(meal);
+}
 
-window.openEditMenuModal = (id) => {
-  editingMenuId=id;
-  const item=menuItems.find(i=>i.id===id);
-  if(!item) return;
-  document.getElementById('menu-modal-title').textContent='Edit Menu Item';
-  document.getElementById('mi-name').value=item.name;
-  document.getElementById('mi-price').value=item.price;
-  document.getElementById('mi-cat').value=item.category;
-  document.getElementById('mi-photo').value=item.photo||'';
-  openModal('modal-menu');
-};
+function renderCheckinForm(meal){
+  document.getElementById('hcContent').innerHTML=`
+    <div class="form-group"><label class="form-label">Full Name</label>
+      <div class="input-wrap has-icon"><span class="input-icon">👤</span><input class="form-control" id="hc_name" placeholder="Your full name"></div></div>
+    <div class="form-group"><label class="form-label">Mess ID</label>
+      <div class="input-wrap has-icon"><span class="input-icon">🏠</span><input class="form-control" id="hc_messId" placeholder="e.g. MESS001" style="text-transform:uppercase"></div></div>
+    <div class="form-group"><label class="form-label">Mobile Number</label>
+      <div class="input-wrap has-icon"><span class="input-icon">📱</span><input class="form-control" id="hc_phone" placeholder="10-digit mobile" type="tel" maxlength="10"></div></div>
+    <div style="background:#fff3ee;border-radius:10px;padding:11px 13px;margin-bottom:16px;font-size:12px;color:var(--muted)">
+      <strong>Meal:</strong> ${meal} &nbsp;|&nbsp; <strong>Date:</strong> ${todayStr()}</div>
+    <button class="btn btn-primary btn-full" id="hcSubmitBtn" onclick="submitSelfCheckin('${meal}')">✓ Confirm Check-in</button>
+    <button class="btn btn-ghost btn-full" style="margin-top:10px" onclick="showPage('loginPage')">← Back</button>`;
+}
 
-window.saveMenuItem = async () => {
-  const name=document.getElementById('mi-name').value.trim();
-  const price=parseInt(document.getElementById('mi-price').value);
-  const category=document.getElementById('mi-cat').value;
-  const photo=document.getElementById('mi-photo').value.trim()||`https://loremflickr.com/300/200/${name.toLowerCase()},food`;
-  if(!name||!price){toast('Please fill name and price','error');return;}
-  if(editingMenuId) {
-    await update(ref(db,'menu/'+editingMenuId),{name,price,category,photo});
-    toast('Item updated!','success');
+async function submitSelfCheckin(meal){
+  const name=document.getElementById('hc_name').value.trim();
+  const messId=document.getElementById('hc_messId').value.trim().toUpperCase();
+  const phone=document.getElementById('hc_phone').value.trim();
+  if(!name||!messId||!phone){showToast('Fill all fields','error');return;}
+  if(phone.length!==10||isNaN(phone)){showToast('Valid 10-digit phone required','error');return;}
+  const btn=document.getElementById('hcSubmitBtn');btn.disabled=true;btn.textContent='Checking...';
+  const q=query(collection(db,'hostel_students'),where('messId','==',messId),where('status','==','active'));
+  const snap=await getDocs(q);
+  if(snap.empty){showToast('Mess ID not found or inactive','error');btn.disabled=false;btn.textContent='✓ Confirm Check-in';return;}
+  const s={id:snap.docs[0].id,...snap.docs[0].data()};
+  const today=todayStr();
+  const todayQ=query(collection(db,'hostel_sessions'),where('messId','==',messId),where('date','==',today));
+  const todaySnap=await getDocs(todayQ);
+  if(!todaySnap.empty){showCheckinResult('already',s,meal,'');return;}
+  const time=nowTime();
+  await addDoc(collection(db,'hostel_sessions'),{messId,name:s.name,messName:s.messName,gender:s.gender,phone,date:today,time,meal,createdAt:serverTimestamp()});
+  showCheckinResult('success',s,meal,time);
+}
+window.submitSelfCheckin=submitSelfCheckin;
+
+function showCheckinResult(status,student,meal,time){
+  if(status==='success'){
+    document.getElementById('hcContent').innerHTML=`
+      <div style="text-align:center">
+        <div style="font-size:60px;animation:pulse 1s 2">✅</div>
+        <h2 style="color:var(--success);font-size:18px;margin:10px 0">Check-in Successful!</h2>
+        <div class="ci-info-grid">
+          <div class="ci-info-row"><span>Name</span><strong>${student.name}</strong></div>
+          <div class="ci-info-row"><span>Mess</span><strong>${student.messName}</strong></div>
+          <div class="ci-info-row"><span>Gender</span><strong>${student.gender}</strong></div>
+          <div class="ci-info-row"><span>Meal</span><strong>${meal}</strong></div>
+          <div class="ci-info-row"><span>Date</span><strong>${todayStr()}</strong></div>
+          <div class="ci-info-row"><span>Time</span><strong>${time}</strong></div>
+        </div>
+        <p style="font-size:12px;color:var(--muted)">Enjoy your ${meal}! 🍽️</p>
+      </div>`;
   } else {
-    await push(ref(db,'menu'),{name,price,category,photo,available:true});
-    toast('Item added!','success');
+    document.getElementById('hcContent').innerHTML=`
+      <div style="text-align:center;padding:10px 0">
+        <div style="font-size:50px;margin-bottom:14px">⚠️</div>
+        <h3 style="color:var(--warning)">Already Checked In</h3>
+        <p style="color:var(--muted);font-size:13px;margin-top:8px">${student.name} has already checked in today.</p>
+        <button class="btn btn-ghost btn-full" style="margin-top:16px" onclick="showPage('loginPage')">← Back</button>
+      </div>`;
   }
-  closeModal('modal-menu');
-  await loadAdminData();
-};
-
-window.toggleItemAvail = async (id, val) => {
-  await update(ref(db,'menu/'+id),{available:val});
-  toast(val?'Item available':'Item unavailable','success');
-  const item=menuItems.find(i=>i.id===id);
-  if(item) item.available=val;
-};
-
-window.deleteMenuItem = async (id) => {
-  if(!confirm('Delete this item?')) return;
-  await remove(ref(db,'menu/'+id));
-  toast('Item deleted','success');
-  await loadAdminData();
-};
-
-// HOSTEL ADMIN
-function renderHostelTable() {
-  const tbody=document.getElementById('hostel-tbody');
-  if(!hostelStudents.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text2);padding:30px">No students added yet</td></tr>';return;}
-  tbody.innerHTML=hostelStudents.map(s=>`
-    <tr>
-      <td><b>${s.messId}</b></td>
-      <td>${s.name}</td>
-      <td>${s.messName}</td>
-      <td>${s.gender}</td>
-      <td><span class="badge ${s.status==='active'?'badge-green':'badge-red'}">${s.status}</span></td>
-      <td>${s.lastCheckin===today()?'<span class="badge badge-green">✓ Yes</span>':'<span class="badge badge-gray">Not yet</span>'}</td>
-      <td><div class="action-btns">
-        <button class="btn btn-gray btn-sm" onclick="showCredentials('${s.key}')">Credentials</button>
-        <button class="btn btn-gray btn-sm" onclick="openEditHostelModal('${s.key}')">Edit</button>
-        <button class="btn ${s.status==='active'?'btn-orange':'btn-green'} btn-sm" onclick="toggleHostelStatus('${s.key}','${s.status}')">${s.status==='active'?'Deactivate':'Activate'}</button>
-        <button class="btn btn-red btn-sm" onclick="deleteHostelStudent('${s.key}')">Del</button>
-      </div></td>
-    </tr>
-  `).join('');
 }
 
-function renderCheckinLog() {
-  const tbody=document.getElementById('checkin-tbody');
-  const todayCheckins = [];
-  get(ref(db,'checkins')).then(snap=>{
-    if(!snap.exists()){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--text2);padding:30px">📭 No check-ins today yet</td></tr>';return;}
-    snap.forEach(c=>{const d=c.val();if(d.date===today()) todayCheckins.push(d);});
-    if(!todayCheckins.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--text2);padding:30px">📭 No check-ins today yet</td></tr>';return;}
-    tbody.innerHTML=todayCheckins.map(c=>`<tr><td>${c.name}</td><td>${c.messName}</td><td>${c.gender}</td><td>${c.time}</td></tr>`).join('');
+// ============================================================
+// ADMIN PAGE
+// ============================================================
+function loadAdminPage(){showPage('adminPage');currentAdminTab='overview';renderAContent();}
+
+function aTab(tab,el){
+  currentAdminTab=tab;
+  document.querySelectorAll('.a-nav-item,.a-bn-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll(`[data-tab="${tab}"]`).forEach(n=>n.classList.add('active'));
+  const titles={overview:'Dashboard Overview',menu:'Menu Management',hostel:'Hostel QR Codes',counter:'Counter Orders',events:'Event Orders',reports:'Reports & Billing'};
+  document.getElementById('aTabTitle').textContent=titles[tab]||tab;
+  renderAContent();
+}
+window.aTab=aTab;
+
+async function renderAContent(){
+  const c=document.getElementById('aContent');
+  if(!c)return;
+  c.innerHTML=`<div style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></div>`;
+  if(currentAdminTab==='overview') c.innerHTML=await buildOverview();
+  else if(currentAdminTab==='menu'){c.innerHTML=await buildMenuMgmt();}
+  else if(currentAdminTab==='hostel'){c.innerHTML=await buildHostelMgmt();setTimeout(renderAdminQRCodes,200);}
+  else if(currentAdminTab==='counter') c.innerHTML=await buildCounter();
+  else if(currentAdminTab==='events') c.innerHTML=await buildEvents();
+  else if(currentAdminTab==='reports') c.innerHTML=await buildReports(reportFilter);
+}
+window.renderAContent=renderAContent;
+
+// OVERVIEW
+async function buildOverview(){
+  const ordersSnap=await getDocs(collection(db,'orders'));
+  const orders=ordersSnap.docs.map(d=>d.data());
+  const today=todayStr();const now=new Date();
+  const todayO=orders.filter(o=>o.date===today);
+  const todayTotal=todayO.reduce((s,o)=>s+o.total,0);
+  const weekTotal=orders.filter(o=>{const d=parseDate(o.date);return d&&(now-d)<7*864e5;}).reduce((s,o)=>s+o.total,0);
+  const monthTotal=orders.filter(o=>{const d=parseDate(o.date);return d&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).reduce((s,o)=>s+o.total,0);
+  const hostelSnap=await getDocs(query(collection(db,'hostel_sessions'),where('date','==',today)));
+  const menuSnap=await getDocs(collection(db,'menu_items'));
+  const usersSnap=await getDocs(collection(db,'users'));
+  const hostelStudSnap=await getDocs(collection(db,'hostel_students'));
+  return `
+  <div class="metrics-grid">
+    <div class="metric-card"><p>Today's Revenue</p><h3>₹${todayTotal}</h3></div>
+    <div class="metric-card g"><p>This Week</p><h3>₹${weekTotal}</h3></div>
+    <div class="metric-card b"><p>This Month</p><h3>₹${monthTotal}</h3></div>
+    <div class="metric-card o"><p>Hostel Today</p><h3>${hostelSnap.size}</h3></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px">
+    <div class="card"><div class="card-body" style="text-align:center"><div style="font-size:30px;margin-bottom:5px">🍱</div><div style="font-size:22px;font-weight:900">${menuSnap.size}</div><div style="color:var(--muted);font-size:11px;font-weight:800">Menu Items</div></div></div>
+    <div class="card"><div class="card-body" style="text-align:center"><div style="font-size:30px;margin-bottom:5px">🎓</div><div style="font-size:22px;font-weight:900">${usersSnap.size}</div><div style="color:var(--muted);font-size:11px;font-weight:800">Registered</div></div></div>
+    <div class="card"><div class="card-body" style="text-align:center"><div style="font-size:30px;margin-bottom:5px">🏠</div><div style="font-size:22px;font-weight:900">${hostelStudSnap.size}</div><div style="color:var(--muted);font-size:11px;font-weight:800">Hostel Students</div></div></div>
+    <div class="card"><div class="card-body" style="text-align:center"><div style="font-size:30px;margin-bottom:5px">📋</div><div style="font-size:22px;font-weight:900">${todayO.length}</div><div style="color:var(--muted);font-size:11px;font-weight:800">Today's Orders</div></div></div>
+  </div>
+  <div class="sec-title">Today's Orders</div>
+  ${todayO.length?`<div class="tbl-wrap" style="margin-bottom:20px"><table class="data-tbl"><thead><tr><th>Order ID</th><th>Time</th><th>Type</th><th>Items</th><th>Total</th><th>Payment</th></tr></thead><tbody>
+  ${todayO.slice().reverse().map(o=>`<tr><td><strong>#${o.orderId}</strong></td><td>${o.time}</td><td><span class="badge badge-primary">${o.type}</span></td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.items.map(i=>i.name+'×'+i.qty).join(', ')}</td><td><strong>₹${o.total}</strong></td><td>${o.payment}</td></tr>`).join('')}
+  </tbody></table></div>`:`<div class="empty-state"><div class="es-icon">📭</div><p>No orders today</p></div>`}
+  <div class="sec-title">Special Offer Banner</div>
+  <div id="offerFormWrap">${await buildOfferForm()}</div>`;
+}
+
+async function buildOfferForm(){
+  const snap=await getDoc(doc(db,'settings','special_offer'));
+  const val=snap.exists()?snap.data().text:'';
+  return `<div style="display:flex;gap:11px;flex-wrap:wrap">
+    <input class="form-control" id="offerInput" value="${val}" placeholder="Set today's special offer" style="flex:1;min-width:200px">
+    <button class="btn btn-primary" onclick="saveOffer()">Save Offer</button>
+  </div>`;
+}
+async function saveOffer(){
+  const v=document.getElementById('offerInput').value;
+  await setDoc(doc(db,'settings','special_offer'),{text:v});
+  showToast('Offer updated!');
+}
+window.saveOffer=saveOffer;
+
+// MENU MANAGEMENT - with Firebase Storage image upload
+async function buildMenuMgmt(){
+  const snap=await getDocs(query(collection(db,'menu_items'),orderBy('order','asc')));
+  const items=snap.docs.map(d=>({id:d.id,...d.data()}));
+  const cats=['Breakfast','Lunch','Snacks & Drinks'];
+  return `<div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+    <button class="btn btn-primary" onclick="showAddItemModal()">+ Add Menu Item</button></div>
+  ${cats.map(cat=>`
+    <div class="sec-title">${cat}</div>
+    <div class="a-menu-grid" style="margin-bottom:20px">
+    ${items.filter(i=>i.category===cat).map(item=>`
+      <div class="a-food-card">
+        <div style="position:relative">
+          <img class="a-food-img" src="${item.imgUrl||''}" alt="${item.name}" onerror="this.style.background='#f0f2f5'">
+          <button onclick="triggerImgReplace('${item.id}')" style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:800">📷 Change</button>
+        </div>
+        <div class="a-food-body">
+          <div class="a-food-name">${item.name}</div>
+          <div class="a-food-price">₹${item.price}</div>
+          <div class="toggle-wrap" style="margin-bottom:9px">
+            <div class="toggle ${item.available?'on':''}" onclick="toggleItem('${item.id}',${item.available})"></div>
+            <span style="font-size:12px;font-weight:800;color:${item.available?'var(--success)':'var(--danger)'}">${item.available?'Available':'Unavailable'}</span>
+          </div>
+          <div class="a-food-actions">
+            <button class="btn btn-sm btn-ghost" onclick="showEditItemModal('${item.id}')">Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteItem('${item.id}','${item.imgUrl||''}')">Del</button>
+          </div>
+        </div>
+      </div>`).join('')||`<div class="empty-state" style="grid-column:1/-1"><p>No items</p></div>`}
+    </div>`).join('')}
+  <input type="file" id="hiddenImgInput" accept="image/*" style="display:none" onchange="uploadReplacedImg(this)">`;
+}
+
+async function toggleItem(id,current){
+  await updateDoc(doc(db,'menu_items',id),{available:!current});
+  renderAContent();showToast('Item updated');
+}
+window.toggleItem=toggleItem;
+
+async function deleteItem(id,imgUrl){
+  if(!confirm('Delete this item?'))return;
+  await deleteDoc(doc(db,'menu_items',id));
+  if(imgUrl&&imgUrl.includes('firebasestorage')){
+    try{await deleteObject(ref(storage,imgUrl));}catch(e){}
+  }
+  renderAContent();showToast('Item deleted','info');
+}
+window.deleteItem=deleteItem;
+
+// Image replacement for existing items
+function triggerImgReplace(itemId){
+  currentEditItemId=itemId;
+  document.getElementById('hiddenImgInput').click();
+}
+window.triggerImgReplace=triggerImgReplace;
+
+async function uploadReplacedImg(input){
+  if(!input.files[0]||!currentEditItemId)return;
+  const file=input.files[0];
+  showToast('Uploading image...','info');
+  try{
+    const storageRef=ref(storage,`menu_images/${currentEditItemId}_${Date.now()}`);
+    const uploadTask=uploadBytesResumable(storageRef,file);
+    await new Promise((resolve,reject)=>{
+      uploadTask.on('state_changed',null,reject,resolve);
+    });
+    const url=await getDownloadURL(storageRef);
+    await updateDoc(doc(db,'menu_items',currentEditItemId),{imgUrl:url});
+    showToast('Image updated!');renderAContent();
+  } catch(e){showToast('Upload failed: '+e.message,'error');}
+  input.value='';currentEditItemId=null;
+}
+window.uploadReplacedImg=uploadReplacedImg;
+
+// ADD ITEM MODAL with image upload
+function showAddItemModal(){
+  showGModal('Add Menu Item',`
+    <div id="aiImgPreviewWrap" style="display:none;margin-bottom:12px">
+      <img id="aiImgPreview" class="img-preview" src="" alt="Preview">
+    </div>
+    <div class="img-upload-zone" id="aiUploadZone">
+      <input type="file" id="aiImgFile" accept="image/*" onchange="previewAddImage(this)">
+      <div class="uz-icon">📷</div>
+      <p>Click to upload food photo</p>
+      <small>JPG, PNG, WEBP — max 5MB</small>
+    </div>
+    <div class="img-progress" id="aiProgress" style="display:none"><div class="img-progress-bar" id="aiProgressBar"></div></div>
+    <div class="form-group" style="margin-top:14px"><label class="form-label">Item Name</label><input class="form-control" id="ai_name" placeholder="e.g. Pav Bhaji"></div>
+    <div class="form-group"><label class="form-label">Price (₹)</label><input class="form-control" type="number" id="ai_price" placeholder="0"></div>
+    <div class="form-group"><label class="form-label">Category</label><select class="form-control" id="ai_cat"><option>Breakfast</option><option>Lunch</option><option>Snacks & Drinks</option></select></div>`,
+  `<button class="btn btn-ghost" onclick="closeModal('gModal')">Cancel</button>
+   <button class="btn btn-primary" id="addItemSaveBtn" onclick="addItem()">Add Item</button>`);
+}
+window.showAddItemModal=showAddItemModal;
+
+function previewAddImage(input){
+  if(!input.files[0])return;
+  const url=URL.createObjectURL(input.files[0]);
+  document.getElementById('aiImgPreview').src=url;
+  document.getElementById('aiImgPreviewWrap').style.display='block';
+  document.getElementById('aiUploadZone').querySelector('p').textContent='Image selected ✓';
+}
+window.previewAddImage=previewAddImage;
+
+async function addItem(){
+  const name=document.getElementById('ai_name').value.trim();
+  const price=parseInt(document.getElementById('ai_price').value);
+  const category=document.getElementById('ai_cat').value;
+  if(!name||!price){showToast('Fill required fields','error');return;}
+  const btn=document.getElementById('addItemSaveBtn');btn.disabled=true;btn.textContent='Saving...';
+  const snap=await getDocs(collection(db,'menu_items'));
+  const order=snap.size+1;
+  let imgUrl='';
+  const fileInput=document.getElementById('aiImgFile');
+  if(fileInput.files[0]){
+    const file=fileInput.files[0];
+    document.getElementById('aiProgress').style.display='block';
+    const tempId='item_'+Date.now();
+    const storageRef=ref(storage,`menu_images/${tempId}`);
+    const task=uploadBytesResumable(storageRef,file);
+    await new Promise((res,rej)=>{
+      task.on('state_changed',snap2=>{
+        const pct=Math.round(snap2.bytesTransferred/snap2.totalBytes*100);
+        document.getElementById('aiProgressBar').style.width=pct+'%';
+      },rej,res);
+    });
+    imgUrl=await getDownloadURL(storageRef);
+  }
+  await addDoc(collection(db,'menu_items'),{name,price,category,imgUrl,available:true,order});
+  closeModal('gModal');renderAContent();showToast('Item added!');
+}
+window.addItem=addItem;
+
+// EDIT ITEM MODAL with image upload
+async function showEditItemModal(id){
+  const snap=await getDoc(doc(db,'menu_items',id));
+  const item={id:snap.id,...snap.data()};
+  showGModal('Edit Menu Item',`
+    <div style="margin-bottom:12px">
+      <img id="eiImgPreview" class="img-preview" src="${item.imgUrl||''}" alt="Current image" style="${item.imgUrl?'':'display:none'}">
+    </div>
+    <div class="img-upload-zone" id="eiUploadZone">
+      <input type="file" id="eiImgFile" accept="image/*" onchange="previewEditImage(this)">
+      <div class="uz-icon">📷</div>
+      <p>${item.imgUrl?'Click to replace photo':'Click to upload photo'}</p>
+      <small>Leave empty to keep current image</small>
+    </div>
+    <div class="img-progress" id="eiProgress" style="display:none"><div class="img-progress-bar" id="eiProgressBar"></div></div>
+    <div class="form-group" style="margin-top:14px"><label class="form-label">Item Name</label><input class="form-control" id="ei_name" value="${item.name}"></div>
+    <div class="form-group"><label class="form-label">Price (₹)</label><input class="form-control" type="number" id="ei_price" value="${item.price}"></div>
+    <div class="form-group"><label class="form-label">Category</label><select class="form-control" id="ei_cat">
+      <option ${item.category==='Breakfast'?'selected':''}>Breakfast</option>
+      <option ${item.category==='Lunch'?'selected':''}>Lunch</option>
+      <option ${item.category==='Snacks & Drinks'?'selected':''}>Snacks & Drinks</option>
+    </select></div>`,
+  `<button class="btn btn-ghost" onclick="closeModal('gModal')">Cancel</button>
+   <button class="btn btn-primary" id="editItemSaveBtn" onclick="editItem('${id}','${item.imgUrl||''}')">Save Changes</button>`);
+}
+window.showEditItemModal=showEditItemModal;
+
+function previewEditImage(input){
+  if(!input.files[0])return;
+  const url=URL.createObjectURL(input.files[0]);
+  const preview=document.getElementById('eiImgPreview');
+  preview.src=url;preview.style.display='block';
+  document.getElementById('eiUploadZone').querySelector('p').textContent='New image selected ✓';
+}
+window.previewEditImage=previewEditImage;
+
+async function editItem(id,oldImgUrl){
+  const name=document.getElementById('ei_name').value.trim();
+  const price=parseInt(document.getElementById('ei_price').value);
+  const category=document.getElementById('ei_cat').value;
+  if(!name||!price){showToast('Fill required fields','error');return;}
+  const btn=document.getElementById('editItemSaveBtn');btn.disabled=true;btn.textContent='Saving...';
+  let imgUrl=oldImgUrl;
+  const fileInput=document.getElementById('eiImgFile');
+  if(fileInput.files[0]){
+    document.getElementById('eiProgress').style.display='block';
+    const storageRef=ref(storage,`menu_images/${id}_${Date.now()}`);
+    const task=uploadBytesResumable(storageRef,fileInput.files[0]);
+    await new Promise((res,rej)=>{
+      task.on('state_changed',snap2=>{
+        document.getElementById('eiProgressBar').style.width=Math.round(snap2.bytesTransferred/snap2.totalBytes*100)+'%';
+      },rej,res);
+    });
+    imgUrl=await getDownloadURL(storageRef);
+    // Delete old image if it was from Firebase Storage
+    if(oldImgUrl&&oldImgUrl.includes('firebasestorage')){
+      try{await deleteObject(ref(storage,oldImgUrl));}catch(e){}
+    }
+  }
+  await updateDoc(doc(db,'menu_items',id),{name,price,category,imgUrl});
+  closeModal('gModal');renderAContent();showToast('Item updated!');
+}
+window.editItem=editItem;
+
+// HOSTEL MANAGEMENT
+async function buildHostelMgmt(){
+  const studSnap=await getDocs(collection(db,'hostel_students'));
+  const students=studSnap.docs.map(d=>({id:d.id,...d.data()}));
+  const today=todayStr();
+  const sessSnap=await getDocs(query(collection(db,'hostel_sessions'),where('date','==',today)));
+  const todaySessions=sessSnap.docs.map(d=>d.data());
+  return `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+    <div><h3 style="font-weight:900;font-size:16px">Meal Session QR Codes</h3><p style="font-size:13px;color:var(--muted)">Display these at canteen for students to scan</p></div>
+    <button class="btn btn-primary" onclick="showAddHostelModal()">+ Add Hostel Student</button>
+  </div>
+  <div class="sec-title">📲 Canteen QR Codes (Display at Counter)</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px">
+    ${['Breakfast','Lunch','Dinner'].map(meal=>`
+      <div class="card" style="text-align:center">
+        <div class="card-header" style="justify-content:center">${meal} QR</div>
+        <div class="card-body">
+          <div id="qr_${meal}" class="qr-box" style="margin:0 auto 10px;display:inline-block"></div>
+          <p style="font-size:12px;color:var(--muted)">Students scan for ${meal} check-in</p>
+          <button class="btn btn-sm btn-outline btn-full" style="margin-top:8px" onclick="printQR('${meal}')">🖨 Print/Display</button>
+        </div>
+      </div>`).join('')}
+  </div>
+  <div class="sec-title">👤 Registered Hostel Students</div>
+  ${students.length?`<div class="tbl-wrap" style="margin-bottom:20px"><table class="data-tbl">
+    <thead><tr><th>Mess ID</th><th>Name</th><th>Mess</th><th>Gender</th><th>Status</th><th>Today</th><th>Actions</th></tr></thead>
+    <tbody>${students.map(s=>{
+      const tc=todaySessions.find(x=>x.messId===s.messId);
+      return `<tr><td><strong>${s.messId}</strong></td><td>${s.name}</td><td>${s.messName}</td><td>${s.gender}</td>
+        <td><span class="badge ${s.status==='active'?'badge-success':'badge-danger'}">${s.status}</span></td>
+        <td>${tc?`<span class="badge badge-success">✓ ${tc.meal}</span>`:`<span class="badge badge-grey">No</span>`}</td>
+        <td style="display:flex;gap:5px;flex-wrap:wrap">
+          <button class="btn btn-sm btn-ghost" onclick="viewCreds('${s.id}')">Creds</button>
+          <button class="btn btn-sm btn-ghost" onclick="showEditHostelModal('${s.id}')">Edit</button>
+          <button class="btn btn-sm ${s.status==='active'?'btn-danger':'btn-success'}" onclick="toggleHostelStatus('${s.id}','${s.status}')"> ${s.status==='active'?'Deactivate':'Activate'}</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteHostelStudent('${s.id}')">Del</button>
+        </td>
+      </tr>`;}).join('')}
+    </tbody>
+  </table></div>`:`<div class="empty-state"><div class="es-icon">🏠</div><p>No hostel students yet</p></div>`}
+  <div class="sec-title">📋 Today's Check-in Log</div>
+  ${todaySessions.length?`<div class="tbl-wrap"><table class="data-tbl"><thead><tr><th>Name</th><th>Mess ID</th><th>Mess</th><th>Gender</th><th>Meal</th><th>Time</th></tr></thead>
+  <tbody>${todaySessions.map(s=>`<tr><td>${s.name}</td><td>${s.messId}</td><td>${s.messName}</td><td>${s.gender}</td><td><span class="badge badge-primary">${s.meal}</span></td><td>${s.time}</td></tr>`).join('')}</tbody>
+  </table></div>`:`<div class="empty-state"><div class="es-icon">📭</div><p>No check-ins today</p></div>`}`;
+}
+
+function renderAdminQRCodes(){
+  ['Breakfast','Lunch','Dinner'].forEach(meal=>{
+    const el=document.getElementById(`qr_${meal}`);
+    if(!el||el.children.length>0)return;
+    const url=`${window.location.origin}${window.location.pathname}?hc=${encodeURIComponent(meal)}`;
+    try{new QRCode(el,{text:url,width:120,height:120,correctLevel:QRCode.CorrectLevel.M});}catch(e){el.innerHTML='<p style="font-size:11px;color:var(--muted)">QR N/A</p>';}
   });
 }
 
-window.openAddHostelModal = () => {
-  document.getElementById('hs-name').value='';
-  document.getElementById('hs-mess').value='';
-  openModal('modal-hostel');
-};
-
-window.saveHostelStudent = async () => {
-  const name=document.getElementById('hs-name').value.trim();
-  const messName=document.getElementById('hs-mess').value.trim();
-  const gender=document.getElementById('hs-gender').value;
-  if(!name||!messName){toast('Please fill all fields','error');return;}
-  const snap=await get(ref(db,'hostelStudents'));
-  const count=snap.exists()?snap.size:0;
-  const messId='MESS'+String(count+1).padStart(3,'0');
-  const password=genId();
-  const student={messId,name,messName,gender,password,status:'active',lastCheckin:'',createdAt:today()};
-  const newRef=await push(ref(db,'hostelStudents'),student);
-  toast('Student added!','success');
-  closeModal('modal-hostel');
-  await loadAdminData();
-  showCredentialsModal({...student,key:newRef.key});
-};
-
-window.showCredentials = (key) => {
-  const s=hostelStudents.find(s=>s.key===key);
-  if(s) showCredentialsModal(s);
-};
-
-function showCredentialsModal(s) {
-  credentialsData=s;
-  document.getElementById('cred-title').textContent='Credentials — '+s.name;
-  document.getElementById('cred-content').innerHTML=`
-    <div class="cred-row"><span class="cred-label">Name:</span><span class="cred-value">${s.name}</span></div>
-    <div class="cred-row"><span class="cred-label">Mess ID:</span><span class="cred-value">${s.messId}</span></div>
-    <div class="cred-row"><span class="cred-label">Password:</span><span class="cred-value">${s.password}</span></div>
-    <div class="cred-row"><span class="cred-label">Mess:</span><span class="cred-value">${s.messName}</span></div>
-    <div class="cred-row"><span class="cred-label">Gender:</span><span class="cred-value">${s.gender}</span></div>
-  `;
-  const qrDiv=document.getElementById('cred-qr');
-  qrDiv.innerHTML='<p style="font-size:12px;color:var(--text2);margin-bottom:8px">Student QR Code (for scanning)</p><div id="qr-gen-box"></div>';
-  setTimeout(()=>{
-    try{new QRCode(document.getElementById('qr-gen-box'),{text:s.messId,width:150,height:150});}catch(e){}
-  },100);
-  openModal('modal-credentials');
+function printQR(meal){
+  const url=`${window.location.origin}${window.location.pathname}?hc=${encodeURIComponent(meal)}`;
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>PCCOER ${meal} QR</title><script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script><style>body{font-family:Arial,sans-serif;text-align:center;padding:40px}h1{margin-bottom:5px}p{color:#666}#qr{display:inline-block;margin:20px auto}</style></head><body><h1>PCCOER Canteen</h1><p>Scan for <strong>${meal}</strong> Check-in — ${todayStr()}</p><div id="qr"></div><p style="font-size:11px;margin-top:16px">${url}</p><script>new QRCode(document.getElementById('qr'),{text:'${url}',width:220,height:220});setTimeout(()=>window.print(),800);<\/script></body></html>`);
 }
+window.printQR=printQR;
 
-window.copyCredentials = () => {
-  if(!credentialsData) return;
-  const text=`PCCOER Canteen - Hostel Student Credentials\nName: ${credentialsData.name}\nMess ID: ${credentialsData.messId}\nPassword: ${credentialsData.password}\nMess: ${credentialsData.messName}\nGender: ${credentialsData.gender}`;
-  navigator.clipboard.writeText(text).then(()=>toast('Copied to clipboard!','success'));
-};
+function showAddHostelModal(){
+  showGModal('Add Hostel Student',`
+    <div class="form-group"><label class="form-label">Full Name</label><input class="form-control" id="hs_name" placeholder="Full name"></div>
+    <div class="form-group"><label class="form-label">Mess Name</label><input class="form-control" id="hs_mess" placeholder="e.g. Rajdhani Mess"></div>
+    <div class="form-group"><label class="form-label">Gender</label><div class="radio-group"><label class="radio-label"><input type="radio" name="hs_g" value="Male" checked>Male</label><label class="radio-label"><input type="radio" name="hs_g" value="Female">Female</label></div></div>`,
+  `<button class="btn btn-ghost" onclick="closeModal('gModal')">Cancel</button>
+   <button class="btn btn-primary" onclick="addHostelStudent()">Add Student</button>`);
+}
+window.showAddHostelModal=showAddHostelModal;
 
-window.openEditHostelModal = (key) => {
-  const s=hostelStudents.find(s=>s.key===key);
-  if(!s) return;
-  document.getElementById('edit-hs-id').value=key;
-  document.getElementById('edit-hs-name').value=s.name;
-  document.getElementById('edit-hs-mess').value=s.messName;
-  document.getElementById('edit-hs-gender').value=s.gender;
-  openModal('modal-edit-hostel');
-};
+async function addHostelStudent(){
+  const name=document.getElementById('hs_name').value.trim();
+  const messName=document.getElementById('hs_mess').value.trim();
+  const gender=document.querySelector('input[name="hs_g"]:checked').value;
+  if(!name||!messName){showToast('Fill all fields','error');return;}
+  const snap=await getDocs(collection(db,'hostel_students'));
+  const num=snap.size+1;
+  const messId=`MESS${String(num).padStart(3,'0')}`;
+  const password=Math.random().toString(36).substring(2,10).toUpperCase();
+  await addDoc(collection(db,'hostel_students'),{messId,name,messName,gender,password,status:'active',createdAt:serverTimestamp()});
+  closeModal('gModal');
+  setTimeout(()=>viewCredsById(messId,name,messName,gender,password),100);
+  renderAContent();showToast('Hostel student added!');
+}
+window.addHostelStudent=addHostelStudent;
 
-window.updateHostelStudent = async () => {
-  const key=document.getElementById('edit-hs-id').value;
-  const name=document.getElementById('edit-hs-name').value.trim();
-  const messName=document.getElementById('edit-hs-mess').value.trim();
-  const gender=document.getElementById('edit-hs-gender').value;
-  if(!name||!messName){toast('Fill all fields','error');return;}
-  await update(ref(db,'hostelStudents/'+key),{name,messName,gender});
-  toast('Student updated!','success');
-  closeModal('modal-edit-hostel');
-  await loadAdminData();
-};
+async function viewCreds(docId){
+  const snap=await getDoc(doc(db,'hostel_students',docId));
+  const s=snap.data();
+  viewCredsById(s.messId,s.name,s.messName,s.gender,s.password);
+}
+window.viewCreds=viewCreds;
 
-window.toggleHostelStatus = async (key, currentStatus) => {
-  const newStatus=currentStatus==='active'?'inactive':'active';
-  await update(ref(db,'hostelStudents/'+key),{status:newStatus});
-  toast('Status updated!','success');
-  await loadAdminData();
-};
-
-window.deleteHostelStudent = async (key) => {
-  if(!confirm('Delete this student permanently?')) return;
-  await remove(ref(db,'hostelStudents/'+key));
-  toast('Student deleted','success');
-  await loadAdminData();
-};
-
-// COUNTER
-function renderCounterMenu() {
-  const filtered=menuItems.filter(i=>i.category===currentCounterTab&&i.available);
-  const el=document.getElementById('counter-items');
-  el.innerHTML=filtered.map(item=>`
-    <div class="counter-item">
-      <div class="counter-item-name">${item.name}</div>
-      <div class="counter-item-price">₹${item.price}</div>
-      <div class="qty-control">
-        <button class="qty-btn" onclick="updateCounterCart('${item.id}',-1)">−</button>
-        <span id="c-qty-${item.id}">${counterCart[item.id]||0}</span>
-        <button class="qty-btn" onclick="updateCounterCart('${item.id}',1)">+</button>
+function viewCredsById(messId,name,messName,gender,password){
+  showGModal(`Credentials — ${name}`,`
+    <div style="background:#f0fdf4;border-radius:10px;padding:16px;margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:14px">
+        <strong>Name:</strong><span>${name}</span>
+        <strong>Mess ID:</strong><span style="font-family:monospace;font-size:17px;color:var(--primary)">${messId}</span>
+        <strong>Password:</strong><span style="font-family:monospace;font-size:17px;color:var(--primary)">${password}</span>
+        <strong>Mess:</strong><span>${messName}</span>
+        <strong>Gender:</strong><span>${gender}</span>
       </div>
     </div>
-  `).join('');
-  renderCounterSummary();
+    <p style="font-size:12px;color:var(--muted);text-align:center">Share these credentials with the student.</p>`,
+  `<button class="btn btn-ghost" onclick="copyCredentials('${messId}','${password}','${name}')">📋 Copy</button>
+   <button class="btn btn-primary" onclick="closeModal('gModal')">Done</button>`);
 }
 
-window.switchCounterTab = (tab,btn) => {
-  currentCounterTab=tab;
-  document.querySelectorAll('#counter-tabs .counter-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderCounterMenu();
-};
-
-window.updateCounterCart = (id,delta) => {
-  const item=menuItems.find(i=>i.id===id);
-  if(!item) return;
-  counterCart[id]=Math.max(0,(counterCart[id]||0)+delta);
-  if(!counterCart[id]) delete counterCart[id];
-  const el=document.getElementById('c-qty-'+id);
-  if(el) el.textContent=counterCart[id]||0;
-  renderCounterSummary();
-};
-
-function renderCounterSummary() {
-  const entries=Object.entries(counterCart).filter(([,q])=>q>0);
-  const total=entries.reduce((s,[id,q])=>{const i=menuItems.find(m=>m.id===id);return s+(i?i.price*q:0);},0);
-  const el=document.getElementById('counter-cart-summary');
-  if(!entries.length){el.innerHTML='<p style="color:var(--text2);text-align:center;padding:10px">No items selected</p>';return;}
-  el.innerHTML='<p style="font-weight:800;margin-bottom:10px">Cart Summary</p>'+entries.map(([id,q])=>{const i=menuItems.find(m=>m.id===id);return i?`<div class="cart-summary-row"><span>${i.name} x${q}</span><span>₹${i.price*q}</span></div>`:''}).join('')+`<div class="cart-summary-row total"><span>Total</span><span>₹${total}</span></div>`;
+function copyCredentials(messId,password,name){
+  const txt=`PCCOER Canteen — Hostel Student Credentials\nName: ${name}\nMess ID: ${messId}\nPassword: ${password}`;
+  navigator.clipboard.writeText(txt).then(()=>showToast('Copied!')).catch(()=>showToast('Copy failed','error'));
 }
+window.copyCredentials=copyCredentials;
 
-window.saveCounterOrder = async () => {
-  const entries=Object.entries(counterCart).filter(([,q])=>q>0);
-  if(!entries.length){toast('No items selected','error');return;}
-  const items=entries.map(([id,q])=>{const i=menuItems.find(m=>m.id===id);return{name:i.name,qty:q,price:i.price};});
-  const total=items.reduce((s,i)=>s+i.price*i.qty,0);
-  const type=document.getElementById('counter-order-type').value;
-  const order={orderId:genOrderId(),date:today(),time:now(),type:'Counter-'+type,items,total,payment:'Counter',user:'Admin'};
-  await push(ref(db,'orders'),order);
-  counterCart={};
-  toast('Order saved!','success');
-  renderCounterMenu();
-  await loadAdminData();
-};
+async function showEditHostelModal(docId){
+  const snap=await getDoc(doc(db,'hostel_students',docId));
+  const s=snap.data();
+  showGModal('Edit Hostel Student',`
+    <div class="form-group"><label class="form-label">Full Name</label><input class="form-control" id="ehs_name" value="${s.name}"></div>
+    <div class="form-group"><label class="form-label">Mess Name</label><input class="form-control" id="ehs_mess" value="${s.messName}"></div>
+    <div class="form-group"><label class="form-label">Gender</label><div class="radio-group">
+      <label class="radio-label"><input type="radio" name="ehs_g" value="Male" ${s.gender==='Male'?'checked':''}>Male</label>
+      <label class="radio-label"><input type="radio" name="ehs_g" value="Female" ${s.gender==='Female'?'checked':''}>Female</label>
+    </div></div>`,
+  `<button class="btn btn-ghost" onclick="closeModal('gModal')">Cancel</button>
+   <button class="btn btn-primary" onclick="editHostelStudent('${docId}')">Save</button>`);
+}
+window.showEditHostelModal=showEditHostelModal;
 
-window.clearCounterCart = () => {counterCart={};renderCounterMenu();};
+async function editHostelStudent(docId){
+  const name=document.getElementById('ehs_name').value.trim();
+  const messName=document.getElementById('ehs_mess').value.trim();
+  const gender=document.querySelector('input[name="ehs_g"]:checked').value;
+  await updateDoc(doc(db,'hostel_students',docId),{name,messName,gender});
+  closeModal('gModal');renderAContent();showToast('Student updated!');
+}
+window.editHostelStudent=editHostelStudent;
+
+async function toggleHostelStatus(docId,current){
+  await updateDoc(doc(db,'hostel_students',docId),{status:current==='active'?'inactive':'active'});
+  renderAContent();showToast('Status updated');
+}
+window.toggleHostelStatus=toggleHostelStatus;
+
+async function deleteHostelStudent(docId){
+  if(!confirm('Permanently delete this student?'))return;
+  await deleteDoc(doc(db,'hostel_students',docId));
+  renderAContent();showToast('Student deleted','info');
+}
+window.deleteHostelStudent=deleteHostelStudent;
+
+// COUNTER ORDERS
+async function buildCounter(){
+  const snap=await getDocs(query(collection(db,'menu_items'),orderBy('order','asc')));
+  const items=snap.docs.map(d=>({id:d.id,...d.data()}));
+  const cats=['Breakfast','Lunch','Snacks & Drinks'];
+  const total=counterCart.reduce((s,x)=>s+x.price*x.qty,0);const count=counterCart.reduce((s,x)=>s+x.qty,0);
+  return `<div class="counter-layout">
+    <div>
+      <div class="form-group" style="max-width:220px"><label class="form-label">Order Type</label>
+        <select class="form-control" id="cOrderType"><option>Student</option><option>Faculty</option><option>Event</option></select></div>
+      ${cats.map(cat=>`
+        <div class="sec-title">${cat}</div>
+        <div class="a-menu-grid" style="margin-bottom:18px">
+        ${items.filter(i=>i.available&&i.category===cat).map(item=>{
+          const inC=counterCart.find(c=>c.id===item.id);const qty=inC?inC.qty:0;
+          return `<div class="a-food-card">
+            <img class="a-food-img" src="${item.imgUrl||''}" alt="${item.name}" onerror="this.style.background='#f0f2f5'">
+            <div class="a-food-body">
+              <div class="a-food-name">${item.name}</div>
+              <div class="a-food-price">₹${item.price}</div>
+              ${qty===0?`<button class="add-btn" onclick="addCounterItem('${item.id}','${item.name}',${item.price},'${item.imgUrl||''}')">+ Add</button>`:`
+              <div class="qty-control"><button class="qty-btn" onclick="changeCounterQty('${item.id}',-1)">−</button><span class="qty-num">${qty}</span><button class="qty-btn" onclick="changeCounterQty('${item.id}',1)">+</button></div>`}
+            </div>
+          </div>`;}).join('')||`<p style="color:var(--muted);font-size:13px">No available items</p>`}
+        </div>`).join('')}
+    </div>
+    <div class="counter-cart-box">
+      <h3 style="font-weight:900;font-size:15px;margin-bottom:14px">🧾 Counter Cart</h3>
+      ${count?counterCart.map(i=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span><strong>${i.name}</strong> ×${i.qty}</span><span style="font-weight:800;color:var(--primary)">₹${i.price*i.qty}</span></div>`).join(''):`<div class="empty-state" style="padding:14px 0"><p>Cart empty</p></div>`}
+      ${count?`<div style="display:flex;justify-content:space-between;font-weight:900;font-size:16px;padding:10px 0"><span>Total</span><span style="color:var(--primary)">₹${total}</span></div>`:''}
+      <div style="display:flex;gap:9px;margin-top:12px">
+        <button class="btn btn-ghost btn-full btn-sm" onclick="cancelCounterOrder()">Cancel</button>
+        <button class="btn btn-primary btn-full" onclick="saveCounterOrder()">Save Order</button>
+      </div>
+    </div>
+  </div>`;
+}
+function addCounterItem(id,name,price,imgUrl){
+  const ex=counterCart.find(c=>c.id===id);
+  if(ex)ex.qty++;else counterCart.push({id,name,price,imgUrl,qty:1});
+  renderAContent();
+}
+window.addCounterItem=addCounterItem;
+function changeCounterQty(id,delta){
+  const idx=counterCart.findIndex(x=>x.id===id);if(idx===-1)return;
+  counterCart[idx].qty+=delta;if(counterCart[idx].qty<=0)counterCart.splice(idx,1);
+  renderAContent();
+}
+window.changeCounterQty=changeCounterQty;
+function cancelCounterOrder(){counterCart=[];renderAContent();showToast('Order cancelled','info');}
+window.cancelCounterOrder=cancelCounterOrder;
+async function saveCounterOrder(){
+  if(!counterCart.length){showToast('Cart is empty','error');return;}
+  const type=(document.getElementById('cOrderType')||{value:'Counter'}).value+' (Counter)';
+  const orderId=await placeOrder(counterCart,type,'Cash on Pickup');
+  counterCart=[];renderAContent();showToast('Counter order saved! #'+orderId);
+}
+window.saveCounterOrder=saveCounterOrder;
 
 // EVENTS
-window.addEventItemRow = () => {
-  const div=document.createElement('div');
-  div.className='event-item-row';
-  div.innerHTML=`<input type="text" placeholder="Item name (e.g. Tea)"><input type="number" placeholder="Qty" min="1"><button class="btn btn-red btn-sm" onclick="this.parentElement.remove()">✕</button>`;
-  document.getElementById('ev-items').appendChild(div);
-};
-
-window.submitEventOrder = async () => {
-  const head=document.getElementById('ev-head').value.trim();
-  const phone=document.getElementById('ev-phone').value.trim();
-  const date=document.getElementById('ev-date').value;
-  const payment=document.querySelector('input[name="ev-payment"]:checked').value;
-  if(!head||!phone||!date){toast('Fill all required fields','error');return;}
-  const rows=[...document.querySelectorAll('#ev-items .event-item-row')];
-  const menuItemsList=rows.map(r=>{const inputs=r.querySelectorAll('input');return{item:inputs[0].value.trim(),qty:inputs[1].value};}).filter(i=>i.item&&i.qty);
-  if(!menuItemsList.length){toast('Add at least one menu item','error');return;}
-  await push(ref(db,'events'),{head,phone,eventDate:date,menuItems:menuItemsList,payment,createdAt:today(),orderId:genOrderId()});
-  toast('Event order submitted!','success');
-  clearEventForm();
-  await loadAdminData();
-};
-
-window.clearEventForm = () => {
-  document.getElementById('ev-head').value='';
-  document.getElementById('ev-phone').value='';
-  document.getElementById('ev-date').value='';
-  document.getElementById('ev-items').innerHTML='';
-  addEventItemRow();
-};
-
-function renderEventsList() {
-  const tbody=document.getElementById('events-tbody');
-  if(!events.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text2);padding:30px">No event orders yet</td></tr>';return;}
-  tbody.innerHTML=[...events].reverse().map(e=>`<tr><td>${e.createdAt}</td><td>${e.head}</td><td>${e.phone}</td><td>${e.menuItems.map(i=>`${i.item} x${i.qty}`).join(', ')}</td><td><span class="badge ${e.payment==='Prepaid'?'badge-green':'badge-orange'}">${e.payment}</span></td></tr>`).join('');
+async function buildEvents(){
+  const snap=await getDocs(collection(db,'events'));
+  const events=snap.docs.map(d=>({id:d.id,...d.data()}));
+  return `<div class="card" style="margin-bottom:20px">
+    <div class="card-header">New Event Order</div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px">
+        <div class="form-group"><label class="form-label">Head Name</label><input class="form-control" id="ev_head" placeholder="Teacher/Student name"></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-control" type="tel" id="ev_phone" placeholder="Phone number"></div>
+        <div class="form-group"><label class="form-label">Event Date</label><input class="form-control" type="date" id="ev_date"></div>
+        <div class="form-group"><label class="form-label">Payment</label><div class="radio-group" style="margin-top:9px"><label class="radio-label"><input type="radio" name="ev_pay" value="Prepaid" checked>Prepaid</label><label class="radio-label"><input type="radio" name="ev_pay" value="Postpaid">Postpaid</label></div></div>
+      </div>
+      <div class="form-group"><label class="form-label">Menu Items</label>
+        <div id="evRows">
+          <div class="ev-row"><input class="form-control" placeholder="Item name"><input class="form-control" type="number" placeholder="Qty" style="max-width:80px"><button class="ev-rm" onclick="this.parentElement.remove()">×</button></div>
+          <div class="ev-row"><input class="form-control" placeholder="Item name"><input class="form-control" type="number" placeholder="Qty" style="max-width:80px"><button class="ev-rm" onclick="this.parentElement.remove()">×</button></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:9px" onclick="addEvRow()">+ Add Item</button>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-ghost" onclick="clearEvForm()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitEvOrder()">Submit Event Order</button>
+      </div>
+    </div>
+  </div>
+  <div class="sec-title">Event Orders History</div>
+  ${events.length?`<div class="tbl-wrap"><table class="data-tbl"><thead><tr><th>ID</th><th>Head</th><th>Phone</th><th>Event Date</th><th>Items</th><th>Payment</th></tr></thead><tbody>
+  ${events.map(e=>`<tr><td>#${e.eventId}</td><td>${e.headName}</td><td>${e.phone}</td><td>${e.eventDate}</td><td style="max-width:180px">${e.menuItems.map(m=>m.item+'×'+m.qty).join(', ')}</td><td><span class="badge ${e.payment==='Prepaid'?'badge-success':'badge-warning'}">${e.payment}</span></td></tr>`).join('')}
+  </tbody></table></div>`:`<div class="empty-state"><div class="es-icon">🎉</div><p>No event orders yet</p></div>`}`;
 }
+function addEvRow(){const r=document.createElement('div');r.className='ev-row';r.innerHTML=`<input class="form-control" placeholder="Item name"><input class="form-control" type="number" placeholder="Qty" style="max-width:80px"><button class="ev-rm" onclick="this.parentElement.remove()">×</button>`;document.getElementById('evRows').appendChild(r);}
+window.addEvRow=addEvRow;
+function clearEvForm(){['ev_head','ev_phone','ev_date'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});const rows=document.getElementById('evRows');rows.innerHTML=`<div class="ev-row"><input class="form-control" placeholder="Item name"><input class="form-control" type="number" placeholder="Qty" style="max-width:80px"><button class="ev-rm" onclick="this.parentElement.remove()">×</button></div><div class="ev-row"><input class="form-control" placeholder="Item name"><input class="form-control" type="number" placeholder="Qty" style="max-width:80px"><button class="ev-rm" onclick="this.parentElement.remove()">×</button></div>`;}
+window.clearEvForm=clearEvForm;
+async function submitEvOrder(){
+  const headName=document.getElementById('ev_head').value.trim();const phone=document.getElementById('ev_phone').value.trim();const eventDate=document.getElementById('ev_date').value;const payment=document.querySelector('input[name="ev_pay"]:checked').value;
+  if(!headName||!phone||!eventDate){showToast('Fill required fields','error');return;}
+  const rows=document.querySelectorAll('#evRows .ev-row');const menuItems=[];
+  rows.forEach(r=>{const inp=r.querySelectorAll('input');const item=inp[0].value.trim();const qty=parseInt(inp[1].value)||0;if(item&&qty)menuItems.push({item,qty});});
+  if(!menuItems.length){showToast('Add at least one item','error');return;}
+  const eventId='EVT-'+randId(5);
+  await addDoc(collection(db,'events'),{eventId,headName,phone,eventDate,menuItems,payment,date:todayStr(),createdAt:serverTimestamp()});
+  clearEvForm();renderAContent();showToast('Event order saved! #'+eventId);
+}
+window.submitEvOrder=submitEvOrder;
 
 // REPORTS
-window.filterReports = (f,btn) => {
-  reportFilter=f;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderReports();
-};
-
-function getFilteredOrders() {
-  const now2=new Date();
-  if(reportFilter==='today') return orders.filter(o=>o.date===today());
-  if(reportFilter==='week') {const d=new Date();d.setDate(d.getDate()-7);return orders.filter(o=>new Date(o.date)>=d);}
-  if(reportFilter==='month') return orders.filter(o=>o.date&&o.date.startsWith(today().slice(0,7)));
-  if(reportFilter==='year') return orders.filter(o=>o.date&&o.date.startsWith(today().slice(0,4)));
-  return orders;
-}
-
-function renderReports() {
-  const filtered=getFilteredOrders();
+async function buildReports(filter){
+  const snap=await getDocs(collection(db,'orders'));
+  const orders=snap.docs.map(d=>d.data());
+  const today=todayStr();const now=new Date();
+  let filtered=orders;
+  if(filter==='today')filtered=orders.filter(o=>o.date===today);
+  else if(filter==='week')filtered=orders.filter(o=>{const d=parseDate(o.date);return d&&(now-d)<7*864e5;});
+  else if(filter==='month')filtered=orders.filter(o=>{const d=parseDate(o.date);return d&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  else if(filter==='year')filtered=orders.filter(o=>{const d=parseDate(o.date);return d&&d.getFullYear()===now.getFullYear();});
   const total=filtered.reduce((s,o)=>s+o.total,0);
-  const hostelCount=filtered.filter(o=>o.type==='Hostel').length;
-  document.getElementById('report-stats').innerHTML=`
-    <div class="stat-card"><div class="stat-label">Orders</div><div class="stat-value">${filtered.length}</div></div>
-    <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value">₹${total}</div></div>
-    <div class="stat-card"><div class="stat-label">Hostel</div><div class="stat-value">${hostelCount}</div></div>
-    <div class="stat-card"><div class="stat-label">Avg Order</div><div class="stat-value">₹${filtered.length?Math.round(total/filtered.length):0}</div></div>
-  `;
-  const tbody=document.getElementById('reports-tbody');
-  if(!filtered.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text2);padding:30px">No orders found</td></tr>';return;}
-  tbody.innerHTML=[...filtered].reverse().map(o=>`<tr><td>${o.date}</td><td>${o.time}</td><td>${o.orderId}</td><td><span class="badge badge-gray">${o.type}</span></td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.items.map(i=>i.name).join(', ')}</td><td style="font-weight:800;color:var(--green)">₹${o.total}</td><td>${o.payment}</td></tr>`).join('');
+  const sessSnap=await getDocs(query(collection(db,'hostel_sessions'),where('date','==',today)));
+  const todaySessions=sessSnap.docs.map(d=>d.data());
+  const hostelMale=todaySessions.filter(s=>s.gender==='Male').length;
+  const hostelFemale=todaySessions.filter(s=>s.gender==='Female').length;
+  const menuSnap=await getDocs(collection(db,'menu_items'));
+  const menuAll=menuSnap.docs.map(d=>d.data());
+  const cats={Breakfast:0,Lunch:0,'Snacks & Drinks':0};
+  filtered.forEach(o=>{o.items.forEach(i=>{const m=menuAll.find(x=>x.name===i.name);if(m&&cats[m.category]!==undefined)cats[m.category]+=i.price*i.qty;});});
+  return `<div class="filter-bar">
+    ${['today','week','month','year','all'].map(f=>`<button class="f-btn ${filter===f?'active':''}" onclick="setFilter('${f}')">${f==='all'?'All Time':f.charAt(0).toUpperCase()+f.slice(1)}</button>`).join('')}
+    <button class="btn btn-success btn-sm" onclick="exportExcel()">⬇ Excel Export</button>
+  </div>
+  <div class="metrics-grid">
+    <div class="metric-card"><p>Revenue</p><h3>₹${total}</h3></div>
+    <div class="metric-card g"><p>Orders</p><h3>${filtered.length}</h3></div>
+    <div class="metric-card b"><p>Hostel Today</p><h3>${todaySessions.length}</h3></div>
+    <div class="metric-card o"><p>Avg Order</p><h3>₹${filtered.length?Math.round(total/filtered.length):0}</h3></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:20px">
+    <div class="card"><div class="card-header">Category Revenue</div><div class="card-body">
+      ${Object.entries(cats).map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span>${k}</span><strong>₹${v}</strong></div>`).join('')}
+    </div></div>
+    <div class="card"><div class="card-header">Hostel Summary (Today)</div><div class="card-body">
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span>Total</span><strong>${todaySessions.length}</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span>Male</span><strong>${hostelMale}</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:13px"><span>Female</span><strong>${hostelFemale}</strong></div>
+    </div></div>
+  </div>
+  <div class="sec-title">Bill History</div>
+  ${filtered.length?`<div class="tbl-wrap"><table class="data-tbl"><thead><tr><th>Date</th><th>Time</th><th>Order ID</th><th>Type</th><th>Items</th><th>Total</th><th>Payment</th></tr></thead>
+  <tbody>${filtered.slice().reverse().map(o=>`<tr><td>${o.date}</td><td>${o.time}</td><td><strong>#${o.orderId}</strong></td><td><span class="badge badge-primary">${o.type}</span></td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.items.map(i=>i.name+'×'+i.qty).join(', ')}</td><td><strong>₹${o.total}</strong></td><td>${o.payment}</td></tr>`).join('')}
+  </tbody></table></div>`:`<div class="empty-state"><div class="es-icon">📭</div><p>No orders found</p></div>`}`;
 }
+async function setFilter(f){reportFilter=f;document.getElementById('aContent').innerHTML=await buildReports(f);}
+window.setFilter=setFilter;
+async function exportExcel(){
+  const snap=await getDocs(collection(db,'orders'));
+  const data=snap.docs.map(d=>{const o=d.data();return{'Date':o.date,'Time':o.time,'Order ID':'#'+o.orderId,'Order Type':o.type,'Items':o.items.map(i=>i.name+'×'+i.qty).join(', '),'Total Amount':'₹'+o.total,'Payment Method':o.payment};});
+  const ws=XLSX.utils.json_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Orders');
+  XLSX.writeFile(wb,'PCCOER_Canteen_Report.xlsx');showToast('Excel exported!');
+}
+window.exportExcel=exportExcel;
 
-window.exportExcel = () => {
-  const filtered=getFilteredOrders();
-  const data=filtered.map(o=>({'Date':o.date,'Time':o.time,'Order ID':o.orderId,'Type':o.type,'Items':o.items.map(i=>`${i.name} x${i.qty}`).join(', '),'Total (₹)':o.total,'Payment':o.payment,'Customer':o.user||''}));
-  const ws=XLSX.utils.json_to_sheet(data);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Orders');
-  XLSX.writeFile(wb,`PCCOER_Canteen_Report_${today()}.xlsx`);
-  toast('Excel downloaded!','success');
-};
-
-window.saveSpecialOffer = async () => {
-  const text=document.getElementById('special-offer-input').value.trim();
-  await set(ref(db,'specialOffer'),text);
-  toast('Special offer saved!','success');
-};
-
+// expose showPage
+window.showPage=showPage;
 </script>
 </body>
 </html>
